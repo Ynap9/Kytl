@@ -1,5 +1,3 @@
-using ktl.be.shared.Constants.Documents;
-
 namespace ktl.be.shared.Constants
 {
     public static class FileUploadConstants
@@ -11,6 +9,6 @@ namespace ktl.be.shared.Constants
         public static readonly string[] AllowedExtensions = { ".docx", ".xlsx", ".pdf", ".png", ".jpg", ".jpeg" };
 
         public static string UploadDirectory => Path.Combine(Path.GetTempPath(),
-            SignTemplateConstants.AppDataFolderName, FolderName);
+            AppConstants.AppFolderName, FolderName);
     }
 }

@@ -21,12 +21,7 @@ namespace ktl.be.infrastructure.external.Documents.Implements
             string location,
             DateTime signedAt,
             int signatureSizeBytes,
-            IReadOnlyList<PdfSignPlacementDto>? placements,
-            string fontFamily,
-            double fontSize,
-            string textColor,
-            byte[]? sealImage,
-            byte[]? wetSignatureImage,
+            PdfSignOptionsDto options,
             ISignaturePlacementResolver placementResolver,
             Func<byte[], CancellationToken, Task<byte[]>> computeSignature,
             CancellationToken cancellationToken = default)
@@ -44,9 +39,11 @@ namespace ktl.be.infrastructure.external.Documents.Implements
             var sigFieldNo = nextNumber++;
             var sigValueNo = nextNumber++;
 
-            var placementList = placements is { Count: > 0 }
-                ? placements.Select(p => (PdfSignPlacementDto?)p).ToList()
-                : new List<PdfSignPlacementDto?> { null };
+            var placementList = options.StampPlacements.Select(p => (PdfSignPlacementDto?)p).ToList();
+            if (options.ShowSignature)
+            {
+                placementList.Insert(0, options.SignaturePlacement);
+            }
 
             var signatureBlocks = new List<(int PageNo, string PageRaw, PdfRectDto Rect, AppearanceResult? Appearance)>();
             var stampBlocks = new List<(int PageNo, string PageRaw, PdfRectDto Rect, AppearanceResult Appearance)>();
@@ -56,8 +53,8 @@ namespace ktl.be.infrastructure.external.Documents.Implements
                 var kind = placement?.Kind ?? PdfSignPlacementKind.Signature;
                 var image = kind switch
                 {
-                    PdfSignPlacementKind.Seal => sealImage,
-                    PdfSignPlacementKind.WetSignature => wetSignatureImage,
+                    PdfSignPlacementKind.Seal => options.SealImage,
+                    PdfSignPlacementKind.WetSignature => options.WetSignatureImage,
                     _ => null
                 };
                 if (kind != PdfSignPlacementKind.Signature && (image == null || image.Length == 0)) continue;
@@ -73,25 +70,37 @@ namespace ktl.be.infrastructure.external.Documents.Implements
 
                 if (kind == PdfSignPlacementKind.Signature)
                 {
-                    var pageFontSize = fontSize * Math.Min(
+                    var pageFontSize = options.FontSize * Math.Min(
                         displayBox.Width / SigningConstants.AppearanceReferencePageWidth,
                         displayBox.Height / SigningConstants.AppearanceReferencePageHeight);
-                    var textSize = PdfAppearanceBuilder.MeasureText(signerName, signedAtText, fontFamily, pageFontSize);
+                    var textSize = PdfAppearanceBuilder.MeasureText(signerName, signedAtText, options.FontFamily,
+                        pageFontSize);
                     var rect = placementResolver.Resolve(displayBox, placement, textSize.Width, textSize.Height);
 
                     var appearance = PdfAppearanceBuilder.Build(signerName, signedAtText, nextNumber,
-                        rect.Width, rect.Height, fontFamily, pageFontSize, textColor, page.Rotation);
+                        rect.Width, rect.Height, options.FontFamily, pageFontSize, options.TextColor, page.Rotation);
                     nextNumber = appearance.Objects.Max(o => o.Number) + 1;
                     signatureBlocks.Add((no, raw, ToUserSpace(page, rect), appearance));
                 }
                 else
                 {
+                    var isSeal = kind == PdfSignPlacementKind.Seal;
                     var rect = placementResolver.Resolve(displayBox, placement,
                         placement!.WidthRatio * displayBox.Width, placement.HeightRatio * displayBox.Height);
                     var appearance = PdfAppearanceBuilder.BuildImage(image!, nextNumber, rect.Width, rect.Height,
-                        page.Rotation);
+                        page.Rotation,
+                        isSeal ? options.SealDarkness : options.WetSignatureDarkness,
+                        isSeal ? StampImageConstants.StrokeMin : options.WetSignatureStroke,
+                        isSeal ? null : options.WetSignatureColor);
                     nextNumber = appearance.Objects.Max(o => o.Number) + 1;
-                    stampBlocks.Add((no, raw, ToUserSpace(page, rect), appearance));
+                    if (options.EmbedSignatureInImage)
+                    {
+                        signatureBlocks.Add((no, raw, ToUserSpace(page, rect), appearance));
+                    }
+                    else
+                    {
+                        stampBlocks.Add((no, raw, ToUserSpace(page, rect), appearance));
+                    }
                 }
             }
 

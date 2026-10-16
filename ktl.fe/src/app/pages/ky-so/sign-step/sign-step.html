@@ -171,16 +171,9 @@
       styleClass="w-44 justify-center"
       [disabled]="!canSign()"
       [loading]="signing() || verifying()"
-      (onClick)="onOpenSignDialog()"
+      (onClick)="onSign()"
     />
   </div>
-
-  <app-sign-dialog
-    [(visible)]="showSignDialog"
-    [defaultReason]="reason()"
-    [defaultLocation]="location()"
-    (start)="onStartSign($event)"
-  />
 
   <app-sign-result-dialog
     [(visible)]="showResultDialog"

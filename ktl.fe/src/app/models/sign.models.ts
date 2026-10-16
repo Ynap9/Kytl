@@ -1,4 +1,5 @@
 import { ECertSource } from '../shared/constants/sign.constants';
+import { IMergeStamp } from './document-merge.models';
 
 export interface ISignatureDetail {
   signedBy?: string;
@@ -104,31 +105,39 @@ export interface ISignPosition {
   yRatio: number;
   widthRatio: number;
   heightRatio: number;
-  kind?: number;
 }
 
-export interface ISignFileConfig {
+export interface ISignLayout {
+  signaturePosition: ISignPosition | null;
+  stamps: IMergeStamp[];
+}
+
+export interface ISignFileConfig extends ISignLayout {
   path: string;
-  positions: ISignPosition[];
 }
 
-export interface ISignConfig {
-  useCustomPosition: boolean;
-  allowOverlapContent: boolean;
-  positions?: ISignPosition[] | null;
-  fileOverrides?: ISignFileConfig[] | null;
-  fontFamily?: string | null;
-  fontSize?: number | null;
-  textColor?: string | null;
-  sealImagePath?: string | null;
-  wetSignatureImagePath?: string | null;
+export interface ISignConfig extends ISignLayout {
+  reason: string;
+  location: string;
+  fontFamily: string;
+  fontSize: number;
+  textColor: string;
+  showSignature: boolean;
+  embedSignatureInImage: boolean;
+  sealImagePath: string;
+  wetSignatureImagePath: string;
+  sealDarkness: number;
+  wetSignatureDarkness: number;
+  wetSignatureStroke: number;
+  wetSignatureColor: string | null;
+  fileOverrides: ISignFileConfig[];
 }
 
 export interface ISignPositionCheckRequest {
   sourcePaths: string[];
-  useCustomPosition: boolean;
-  positions?: ISignPosition[] | null;
-  fileOverrides?: ISignFileConfig[] | null;
+  showSignature: boolean;
+  signaturePosition: ISignPosition | null;
+  fileOverrides: ISignFileConfig[];
 }
 
 export interface ISignPositionFile {
@@ -149,20 +158,9 @@ export interface ISignPositionCheck {
   files: ISignPositionFile[];
 }
 
-export interface ISignRequest {
+export interface ISignRequest extends ISignConfig {
   thumbprint: string;
   sourcePaths: string[];
-  reason?: string;
-  location?: string;
-  useCustomPosition: boolean;
-  allowOverlapContent: boolean;
-  positions?: ISignPosition[] | null;
-  fileOverrides?: ISignFileConfig[] | null;
-  fontFamily?: string | null;
-  fontSize?: number | null;
-  textColor?: string | null;
-  sealImagePath?: string | null;
-  wetSignatureImagePath?: string | null;
 }
 
 export interface ISignFileRow {

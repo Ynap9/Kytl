@@ -29,10 +29,7 @@ interface NavItem {
 })
 export class Menu {
   protected readonly navItems: NavItem[] = [
-    { label: 'Trang chủ', icon: 'pi-home', link: '/' },
     { label: 'Ký số', icon: 'pi-verified', link: '/ky-so' },
-    { label: 'Tạo văn bản', icon: 'pi-clone', link: '/tao-van-ban' },
-    { label: 'Dấu & chữ ký', icon: 'pi-images', link: '/dau-chu-ky' },
-    { label: 'Cấu hình', icon: 'pi-cog', link: '/cau-hinh' }
+    { label: 'Tạo văn bản', icon: 'pi-clone', link: '/tao-van-ban' }
   ];
 }

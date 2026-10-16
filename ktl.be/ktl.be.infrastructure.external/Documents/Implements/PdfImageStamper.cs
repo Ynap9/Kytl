@@ -84,7 +84,7 @@ namespace ktl.be.infrastructure.external.Documents.Implements
             }
             catch (Exception ex)
             {
-                throw new UserFriendlyException(ErrorCodes.SignTemplateImageInvalid,
+                throw new UserFriendlyException(ErrorCodes.StampImageInvalid,
                     $"Không đọc được ảnh để đóng lên PDF: {ex.Message}");
             }
         }

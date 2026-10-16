@@ -11,12 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="16.1.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ktl.be.domain\ktl.be.domain.csproj" />
-    <ProjectReference Include="..\ktl.be.infrastructure.data\ktl.be.infrastructure.data.csproj" />
     <ProjectReference Include="..\ktl.be.infrastructure.external\ktl.be.infrastructure.external.csproj" />
   </ItemGroup>
 

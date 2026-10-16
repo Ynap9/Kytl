@@ -20,10 +20,7 @@ namespace ktl.be.shared.Requests.ErrorRequest
         public const int SignPdfLocked = 1034;
         public const int SignPdfStructureUnsupported = 1035;
         public const int SignPositionInvalid = 1037;
-        public const int SignTemplateNotFound = 1038;
-        public const int SignTemplateNameDuplicated = 1039;
-        public const int SignTemplateImageInvalid = 1040;
-        public const int SignTemplateSampleMissing = 1041;
+        public const int StampImageInvalid = 1040;
         public const int MergeTemplateInvalid = 1042;
         public const int MergeDataInvalid = 1043;
         public const int MergeMappingInvalid = 1044;
@@ -31,7 +28,5 @@ namespace ktl.be.shared.Requests.ErrorRequest
         public const int MergeFailed = 1046;
         public const int MergeStampInvalid = 1047;
         public const int FileUploadInvalid = 1048;
-        public const int PdfStampSourceInvalid = 1049;
-        public const int PdfStampFailed = 1050;
     }
 }

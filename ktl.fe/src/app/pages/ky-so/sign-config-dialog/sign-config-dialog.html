@@ -1,0 +1,388 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closeOnEscape]="true"
+  [dismissableMask]="false"
+  styleClass="sign-config-dialog"
+  [style]="{ width: '94vw', maxWidth: '1520px' }"
+  [contentStyle]="{ padding: '0' }"
+>
+  <ng-template #header>
+    <div class="flex items-center gap-3">
+      <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+        <i class="pi pi-sliders-h"></i>
+      </span>
+      <div class="flex flex-col">
+        <span class="text-base font-semibold text-slate-800">Cấu hình chữ ký</span>
+        <span class="text-xs text-slate-500">Thiết lập hiển thị chữ ký số, dấu đỏ, chữ ký tươi rồi kéo thả lên trang</span>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="flex h-[76vh] min-h-0 bg-[#f5f7fa] p-4">
+    <app-stamp-designer
+      title="Thiết lập chữ ký"
+      subtitle="Áp dụng cho mọi file đã chọn"
+      emptyText="Chọn file hoặc thư mục cần ký để xem trước."
+      [toggleable]="false"
+      [enabled]="true"
+      [modeSwitch]="false"
+      [previewUrl]="previewUrl()"
+      [previewLoading]="loadingFiles()"
+      [imageFilters]="imageFilters()"
+      [pageExtra]="signatureLayer"
+      [sealImagePath]="draft().sealImagePath"
+      (sealImagePathChange)="onSealImageChange($event)"
+      [wetSignatureImagePath]="draft().wetSignatureImagePath"
+      (wetSignatureImagePathChange)="onWetSignatureImageChange($event)"
+      [stamps]="layout().stamps"
+      (stampsChange)="onStampsChange($event)"
+      (pagesLoaded)="onPagesLoaded($event)"
+    >
+      <div designerConfig>
+        <section class="config-section">
+          <div class="config-section__title">
+            <i class="pi pi-file-edit"></i>
+            <span>Thông tin ký</span>
+          </div>
+          <div class="flex flex-col gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="config-label" for="sign-reason">Lý do ký</label>
+              <input
+                id="sign-reason"
+                pInputText
+                pSize="small"
+                class="w-full"
+                placeholder="Ví dụ: Phê duyệt văn bản"
+                [ngModel]="draft().reason"
+                (ngModelChange)="patch({ reason: $event })"
+              />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="config-label" for="sign-location">Nơi ký</label>
+              <input
+                id="sign-location"
+                pInputText
+                pSize="small"
+                class="w-full"
+                placeholder="Ví dụ: Hà Nội"
+                [ngModel]="draft().location"
+                (ngModelChange)="patch({ location: $event })"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section class="config-section">
+          <div class="config-section__title">
+            <i class="pi pi-verified"></i>
+            <span class="flex-1">Khối chữ ký số</span>
+            <p-toggleswitch
+              [ngModel]="draft().showSignature"
+              (ngModelChange)="patch({ showSignature: $event })"
+              pTooltip="Hiện tên người ký và thời gian ký trên trang"
+              tooltipPosition="left"
+            />
+          </div>
+
+          @if (draft().showSignature) {
+            <div class="flex flex-col gap-3">
+              <div
+                class="signature-sample"
+                [style.font-family]="draft().fontFamily"
+                [style.color]="draft().textColor"
+                [style.font-size.px]="draft().fontSize * 1.2"
+              >
+                <span>{{ signerLabel() }}</span>
+                <span>{{ previewTime }}</span>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="config-label">Font chữ</label>
+                <p-select
+                  [options]="fontFamilies"
+                  [ngModel]="draft().fontFamily"
+                  optionLabel="label"
+                  optionValue="value"
+                  size="small"
+                  class="w-full"
+                  (onChange)="patch({ fontFamily: $event.value })"
+                >
+                  <ng-template #item let-option>
+                    <span [style.font-family]="option.value">{{ option.label }}</span>
+                  </ng-template>
+                </p-select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div class="flex min-w-0 flex-col gap-1">
+                  <label class="config-label">Cỡ chữ</label>
+                  <p-inputnumber
+                    [ngModel]="draft().fontSize"
+                    (ngModelChange)="patch({ fontSize: $event ?? fontSizeMin })"
+                    [min]="fontSizeMin"
+                    [max]="fontSizeMax"
+                    [step]="fontSizeStep"
+                    [minFractionDigits]="0"
+                    [maxFractionDigits]="1"
+                    [showButtons]="true"
+                    buttonLayout="horizontal"
+                    suffix=" pt"
+                    size="small"
+                    inputStyleClass="w-full text-center"
+                    styleClass="w-full"
+                  />
+                </div>
+                <div class="flex min-w-0 flex-col gap-1">
+                  <label class="config-label">Màu chữ</label>
+                  <div class="color-field">
+                    <p-colorpicker
+                      [ngModel]="draft().textColor"
+                      (ngModelChange)="patch({ textColor: $event })"
+                      format="hex"
+                      appendTo="body"
+                    />
+                    <span class="font-mono text-[13px] uppercase text-slate-700">{{ draft().textColor }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-1">
+                <label class="config-label">Trang đặt khối</label>
+                <div class="flex items-center gap-2">
+                  <p-inputnumber
+                    [ngModel]="signaturePage()"
+                    (ngModelChange)="setSignaturePage($event)"
+                    [min]="1"
+                    [max]="pageCount() || 1"
+                    [showButtons]="true"
+                    buttonLayout="horizontal"
+                    size="small"
+                    inputStyleClass="w-14 text-center"
+                    [disabled]="pageCount() === 0"
+                  />
+                  <span class="text-xs text-slate-500">/ {{ pageCount() || '—' }} trang</span>
+                  <p-button
+                    icon="pi pi-replay"
+                    label="Mặc định"
+                    severity="secondary"
+                    size="small"
+                    [text]="true"
+                    class="ml-auto"
+                    pTooltip="Về góc trên bên phải trang 1"
+                    tooltipPosition="top"
+                    (onClick)="resetSignaturePosition()"
+                  />
+                </div>
+                <small class="text-xs text-slate-500">Kéo khối trên trang để đổi vị trí.</small>
+              </div>
+            </div>
+          } @else {
+            <p class="config-hint">Chữ ký số vẫn được ký đầy đủ, chỉ không hiện khối tên người ký và thời gian trên trang.</p>
+          }
+
+          <label class="option-card mt-3">
+            <p-toggleswitch
+              [ngModel]="draft().embedSignatureInImage"
+              (ngModelChange)="patch({ embedSignatureInImage: $event })"
+            />
+            <span class="flex min-w-0 flex-col">
+              <span class="text-[13px] font-semibold text-slate-800">Nhồi chữ ký số vào ảnh</span>
+              <span class="text-xs leading-4 text-slate-500">
+                Ảnh dấu đỏ, chữ ký tươi trở thành vùng chữ ký số, bấm vào ảnh trong file sẽ xem được thông tin chữ ký
+              </span>
+            </span>
+          </label>
+        </section>
+      </div>
+
+      <div designerImage>
+        @if (draft().sealImagePath || draft().wetSignatureImagePath) {
+          <section class="config-section">
+            <div class="config-section__title">
+              <i class="pi pi-palette"></i>
+              <span>Hiệu chỉnh ảnh</span>
+            </div>
+
+            <div class="flex flex-col gap-4">
+              @if (draft().sealImagePath) {
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="config-label flex items-center gap-1.5">
+                      <span class="h-2 w-2 rounded-full bg-red-500"></span>
+                      Độ đậm dấu đỏ
+                    </span>
+                    <span class="value-badge">{{ draft().sealDarkness }}%</span>
+                  </div>
+                  <p-slider
+                    [ngModel]="draft().sealDarkness"
+                    (ngModelChange)="patch({ sealDarkness: $event })"
+                    [min]="darknessMin"
+                    [max]="darknessMax"
+                  />
+                </div>
+              }
+
+              @if (draft().wetSignatureImagePath) {
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="config-label flex items-center gap-1.5">
+                      <span class="h-2 w-2 rounded-full bg-blue-600"></span>
+                      Độ đậm chữ ký tươi
+                    </span>
+                    <span class="value-badge">{{ draft().wetSignatureDarkness }}%</span>
+                  </div>
+                  <p-slider
+                    [ngModel]="draft().wetSignatureDarkness"
+                    (ngModelChange)="patch({ wetSignatureDarkness: $event })"
+                    [min]="darknessMin"
+                    [max]="darknessMax"
+                  />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center justify-between">
+                    <span class="config-label">Độ dày nét chữ ký tươi</span>
+                    <span class="value-badge">{{ draft().wetSignatureStroke }}%</span>
+                  </div>
+                  <p-slider
+                    [ngModel]="draft().wetSignatureStroke"
+                    (ngModelChange)="patch({ wetSignatureStroke: $event })"
+                    [min]="strokeMin"
+                    [max]="strokeMax"
+                  />
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <span class="config-label">Màu mực chữ ký tươi</span>
+                  <div class="flex items-center gap-2">
+                    <div class="color-field flex-1">
+                      <p-colorpicker
+                        [ngModel]="draft().wetSignatureColor ?? '#1e3a8a'"
+                        (ngModelChange)="patch({ wetSignatureColor: $event })"
+                        format="hex"
+                        appendTo="body"
+                      />
+                      <span class="font-mono text-[13px] uppercase text-slate-700">
+                        {{ draft().wetSignatureColor ?? 'Màu gốc của ảnh' }}
+                      </span>
+                    </div>
+                    @if (draft().wetSignatureColor) {
+                      <p-button
+                        label="Giữ màu gốc"
+                        severity="secondary"
+                        size="small"
+                        [text]="true"
+                        (onClick)="patch({ wetSignatureColor: null })"
+                      />
+                    }
+                  </div>
+                </div>
+              }
+
+              <p class="config-hint">Độ dày nét và màu mực áp dụng khi ký, khung xem trước chỉ mô phỏng độ đậm.</p>
+            </div>
+          </section>
+        }
+      </div>
+
+      <div designerNav class="flex min-w-0 flex-1 items-center gap-2">
+        <p-button
+          icon="pi pi-chevron-left"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          [disabled]="fileIndex() <= 0"
+          (onClick)="selectFile(fileIndex() - 1)"
+        />
+        <p-select
+          [options]="fileOptions()"
+          [ngModel]="fileIndex()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          size="small"
+          placeholder="Chưa có file"
+          emptyMessage="Chưa có file"
+          [loading]="loadingFiles()"
+          class="w-72 min-w-0"
+          (onChange)="selectFile($event.value)"
+        />
+        <p-button
+          icon="pi pi-chevron-right"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          [disabled]="fileIndex() >= files().length - 1"
+          (onClick)="selectFile(fileIndex() + 1)"
+        />
+        @if (files().length > 0) {
+          <span class="text-xs whitespace-nowrap text-slate-500">{{ fileIndex() + 1 }}/{{ files().length }}</span>
+        }
+
+        <div class="ml-auto flex items-center gap-2">
+          @if (ownLayoutCount() > 0) {
+            <span class="own-count" pTooltip="Số file đang dùng vị trí riêng" tooltipPosition="bottom">
+              {{ ownLayoutCount() }} file riêng
+            </span>
+          }
+          <label
+            class="flex items-center gap-2 text-[13px] font-medium text-slate-700"
+            [class.opacity-50]="!currentFile()"
+            pTooltip="Bật để kéo vị trí chỉ cho file đang xem, các file khác giữ vị trí chung"
+            tooltipPosition="bottom"
+          >
+            <p-toggleswitch
+              [ngModel]="!!ownLayout()"
+              (ngModelChange)="toggleOwnLayout($event)"
+              [disabled]="!currentFile()"
+            />
+            Vị trí riêng file này
+          </label>
+        </div>
+      </div>
+    </app-stamp-designer>
+  </div>
+
+  <ng-template #footer>
+    <div class="flex w-full items-center gap-3">
+      <span class="flex items-center gap-1.5 text-xs text-slate-500">
+        <i class="pi pi-info-circle"></i>
+        Cấu hình được nhớ trên máy này cho các lần ký sau
+      </span>
+      <div class="ml-auto flex gap-2">
+        <p-button label="Huỷ" severity="secondary" [outlined]="true" (onClick)="onCancel()" />
+        <p-button label="Lưu cấu hình" icon="pi pi-check" (onClick)="onSave()" />
+      </div>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<ng-template #signatureLayer let-page>
+  @if (signatureBox(page); as box) {
+    <div
+      class="signature-block"
+      [class.signature-block--active]="signatureActive()"
+      [style.left.%]="box.xRatio * 100"
+      [style.top.%]="box.yRatio * 100"
+      [style.width.%]="box.widthRatio * 100"
+      [style.height.%]="box.heightRatio * 100"
+      [style.font-family]="draft().fontFamily"
+      [style.font-size.px]="signatureFontPx(page)"
+      [style.line-height]="lineHeightRatio"
+      [style.color]="draft().textColor"
+      pTooltip="Khối chữ ký số, kéo để đổi vị trí"
+      tooltipPosition="top"
+      (pointerdown)="onSignaturePointerDown($event, page)"
+      (pointermove)="onSignaturePointerMove($event)"
+      (pointerup)="onSignaturePointerUp($event)"
+    >
+      <span>{{ signerLabel() }}</span>
+      <span>{{ previewTime }}</span>
+    </div>
+  }
+</ng-template>

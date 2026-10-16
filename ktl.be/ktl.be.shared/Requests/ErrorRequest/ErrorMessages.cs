@@ -23,11 +23,7 @@ namespace ktl.be.shared.Requests.ErrorRequest
             { ErrorCodes.SignPdfLocked, "File PDF bị khóa không cho ký thêm (/DocMDP)" },
             { ErrorCodes.SignPdfStructureUnsupported, "Cấu trúc file PDF không hỗ trợ ký nối bản" },
             { ErrorCodes.SignPositionInvalid, "Vị trí đặt chữ ký không hợp lệ" },
-
-            { ErrorCodes.SignTemplateNotFound, "Không tìm thấy template cấu hình chữ ký" },
-            { ErrorCodes.SignTemplateNameDuplicated, "Tên template đã tồn tại trên máy này" },
-            { ErrorCodes.SignTemplateImageInvalid, "Ảnh dấu đỏ hoặc chữ ký tươi không hợp lệ" },
-            { ErrorCodes.SignTemplateSampleMissing, "Bản cài thiếu file PDF mẫu để xem trước" },
+            { ErrorCodes.StampImageInvalid, "Ảnh dấu đỏ hoặc chữ ký tươi không hợp lệ" },
 
             { ErrorCodes.MergeTemplateInvalid, "File template Word không hợp lệ" },
             { ErrorCodes.MergeDataInvalid, "File dữ liệu Excel không hợp lệ" },
@@ -36,8 +32,6 @@ namespace ktl.be.shared.Requests.ErrorRequest
             { ErrorCodes.MergeFailed, "Sinh file thất bại" },
             { ErrorCodes.MergeStampInvalid, "Cấu hình ảnh dấu đỏ hoặc chữ ký tươi không hợp lệ" },
             { ErrorCodes.FileUploadInvalid, "File kéo thả vào ứng dụng không hợp lệ" },
-            { ErrorCodes.PdfStampSourceInvalid, "Không tìm thấy file hoặc thư mục PDF cần chèn dấu, chữ ký" },
-            { ErrorCodes.PdfStampFailed, "Chèn dấu, chữ ký vào file thất bại" },
         };
 
         public static string GetMessage(int code)

@@ -1,5 +1,3 @@
-using ktl.be.infrastructure.external.Documents.Dtos;
-
 namespace ktl.be.applications.Document.Dtos.Sign
 {
     public class SignPositionDto
@@ -13,7 +11,5 @@ namespace ktl.be.applications.Document.Dtos.Sign
         public double WidthRatio { get; set; }
 
         public double HeightRatio { get; set; }
-
-        public PdfSignPlacementKind Kind { get; set; }
     }
 }

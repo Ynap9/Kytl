@@ -94,6 +94,20 @@ namespace ktl.be.api.Controllers.Documents
             }
         }
 
+        [HttpGet("xem-anh")]
+        public IActionResult ViewImage([FromQuery] string path)
+        {
+            try
+            {
+                var (stream, contentType) = _documentMergeService.OpenImage(path);
+                return File(stream, contentType);
+            }
+            catch (Exception)
+            {
+                return NotFound();
+            }
+        }
+
         [HttpPost("sinh-file")]
         public async Task Merge(MergeRequestDto input)
         {

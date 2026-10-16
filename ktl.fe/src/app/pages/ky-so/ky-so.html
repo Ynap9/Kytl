@@ -9,37 +9,10 @@
     </div>
 
     <div class="col-span-5 flex min-w-0 flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div class="flex items-center justify-between gap-2">
-        <h2 class="flex items-center gap-2 text-base font-semibold text-slate-800">
-          <i class="pi pi-verified text-primary"></i>
-          Cấu hình chữ ký
-        </h2>
-        <p-button
-          label="Quản lý template"
-          icon="pi pi-cog"
-          severity="secondary"
-          size="small"
-          [text]="true"
-          (onClick)="goToTemplates()"
-        />
-      </div>
-
-      <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-slate-700">Template chữ ký</label>
-        <p-select
-          [options]="templates()"
-          [ngModel]="templateId()"
-          optionLabel="tenTemplate"
-          optionValue="id"
-          [filter]="true"
-          filterBy="tenTemplate,tenChungThu"
-          [loading]="templateLoading()"
-          placeholder="Chọn template đã cấu hình"
-          emptyMessage="Chưa có template nào"
-          class="w-full"
-          (onChange)="onTemplateChange($event.value)"
-        />
-      </div>
+      <h2 class="flex items-center gap-2 text-base font-semibold text-slate-800">
+        <i class="pi pi-verified text-primary"></i>
+        Cấu hình chữ ký
+      </h2>
 
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-slate-700">Chứng thư số</label>
@@ -71,11 +44,31 @@
           <small class="text-slate-500">Chưa xác thực thì bấm Ký số sẽ tự mở hộp nhập PIN của token.</small>
         }
       </div>
+
+      <p-divider styleClass="my-0" />
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <label class="text-sm font-medium text-slate-700">Hiển thị chữ ký</label>
+          <p-button
+            label="Cấu hình"
+            icon="pi pi-sliders-h"
+            size="small"
+            [outlined]="true"
+            (onClick)="showConfig.set(true)"
+          />
+        </div>
+        <div class="flex flex-wrap gap-1.5">
+          @for (item of configSummary(); track item) {
+            <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-600">{{ item }}</span>
+          }
+        </div>
+      </div>
     </div>
   </div>
 
-  @if (!selectedTemplate()) {
-    <p-message severity="info" text="Chọn template chữ ký để bắt đầu. Chưa có template thì tạo ở Cấu hình → Template chữ ký." />
+  @if (!thumbprint()) {
+    <p-message severity="info" text="Chọn chứng thư số để bắt đầu." />
   } @else if (sources().length === 0) {
     <p-message severity="info" text="Chọn file hoặc thư mục cần ký để kiểm tra định dạng và ký số." />
   } @else {
@@ -83,9 +76,15 @@
       [thumbprint]="thumbprint() ?? ''"
       [certName]="certName()"
       [sources]="sources()"
-      [config]="signConfig()"
-      [reason]="selectedTemplate()?.lyDoKy ?? ''"
-      [location]="selectedTemplate()?.noiKy ?? ''"
+      [config]="config()"
     />
   }
+
+  <app-sign-config-dialog
+    [(visible)]="showConfig"
+    [sources]="sources()"
+    [certName]="certName()"
+    [config]="config()"
+    (save)="onConfigSave($event)"
+  />
 </div>

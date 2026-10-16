@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, model, signal, untracked } from '@angular/core';
+import { Component, TemplateRef, computed, effect, inject, input, model, output, signal, untracked } from '@angular/core';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 
@@ -8,7 +8,7 @@ import { PdfPages } from '../../components/pdf-pages/pdf-pages';
 import { IPdfPage, IPdfPageMetric } from '../../models/pdf-pages.models';
 import { Utils } from '../../utils';
 import { FilePickerService } from '../../../services/file-picker.service';
-import { SignTemplateService } from '../../../services/sign-template.service';
+import { DocumentMergeService } from '../../../services/document-merge.service';
 import { IMergeStamp, IMergeStampArea } from '../../../models/document-merge.models';
 import {
   EMergePreviewMode,
@@ -51,7 +51,7 @@ interface IStampItem {
   host: { class: 'flex min-h-0 flex-1 gap-4' }
 })
 export class StampDesigner extends BaseComponent {
-  private signTemplateService = inject(SignTemplateService);
+  private documentMergeService = inject(DocumentMergeService);
   protected filePicker = inject(FilePickerService);
 
   previewUrl = input<string | null>(null);
@@ -59,7 +59,12 @@ export class StampDesigner extends BaseComponent {
   previewWarnings = input<string[]>([]);
   emptyText = input<string>('Đang tạo bản xem trước.');
   toggleable = input<boolean>(true);
+  title = input<string>('Dấu & chữ ký');
   subtitle = input<string>('Đóng lên PDF sau khi nhồi dữ liệu');
+  modeSwitch = input<boolean>(true);
+  imageFilters = input<Partial<Record<EMergeStampKind, string>>>({});
+  pageExtra = input<TemplateRef<{ $implicit: IPdfPage }> | null>(null);
+  pagesLoaded = output<IPdfPageMetric[]>();
   enabled = model<boolean>(false);
   mode = model<EMergePreviewMode>(EMergePreviewMode.Edit);
   sealImagePath = model<string>('');
@@ -144,7 +149,11 @@ export class StampDesigner extends BaseComponent {
 
   imageUrl(kind: EMergeStampKind): string | null {
     const path = this.imagePath(kind);
-    return path ? this.signTemplateService.imageUrl(path) : null;
+    return path ? this.documentMergeService.imageUrl(path) : null;
+  }
+
+  imageFilter(kind: EMergeStampKind): string | null {
+    return this.imageFilters()[kind] ?? null;
   }
 
   stampCount(kind: EMergeStampKind): number {
@@ -211,6 +220,7 @@ export class StampDesigner extends BaseComponent {
 
   onPdfLoaded(metrics: IPdfPageMetric[]): void {
     this.pageMetrics.set(metrics);
+    this.pagesLoaded.emit(metrics);
   }
 
   onPdfFailed(): void {
@@ -229,7 +239,7 @@ export class StampDesigner extends BaseComponent {
       this.messageError(
         `Không mở được ảnh ${this.kindLabel(kind).toLowerCase()}. Kiểm tra lại file có tồn tại và là ảnh PNG hoặc JPEG.`
       );
-    image.src = this.signTemplateService.imageUrl(path);
+    image.src = this.documentMergeService.imageUrl(path);
   }
 
   private baseSize(kind: EMergeStampKind, page: IPdfPageMetric): { width: number; height: number } {

@@ -10,9 +10,13 @@ namespace ktl.be.infrastructure.external.Documents.Dtos
 
         public string? Location { get; set; }
 
-        public IReadOnlyList<PdfSignPlacementDto>? Placements { get; set; }
+        public bool ShowSignature { get; set; } = true;
 
-        public bool AllowOverlapContent { get; set; }
+        public PdfSignPlacementDto? SignaturePlacement { get; set; }
+
+        public IReadOnlyList<PdfSignPlacementDto> StampPlacements { get; set; } = new List<PdfSignPlacementDto>();
+
+        public bool EmbedSignatureInImage { get; set; }
 
         public string FontFamily { get; set; } = SigningConstants.AppearanceFontFamily;
 
@@ -23,5 +27,13 @@ namespace ktl.be.infrastructure.external.Documents.Dtos
         public byte[]? SealImage { get; set; }
 
         public byte[]? WetSignatureImage { get; set; }
+
+        public int SealDarkness { get; set; } = StampImageConstants.DarknessDefault;
+
+        public int WetSignatureDarkness { get; set; } = StampImageConstants.DarknessDefault;
+
+        public int WetSignatureStroke { get; set; } = StampImageConstants.StrokeDefault;
+
+        public string? WetSignatureColor { get; set; }
     }
 }
