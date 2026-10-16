@@ -7,7 +7,7 @@
 
 !define APP_ID        "KTL"
 !define APP_NAME      "Ký số Sao Mai"
-!define APP_VERSION   "1.1.0"
+!define APP_VERSION   "1.2.0"
 !define APP_PUBLISHER "Sao Mai Digital Solutions"
 !define APP_EXE       "KTL.exe"
 
@@ -35,7 +35,7 @@ RequestExecutionLevel admin
 SetCompressor /SOLID lzma
 BrandingText "${APP_PUBLISHER} - ${APP_NAME} ${APP_VERSION}"
 
-VIProductVersion "1.1.0.0"
+VIProductVersion "1.2.0.0"
 VIAddVersionKey "ProductName"     "${APP_NAME}"
 VIAddVersionKey "ProductVersion"  "${APP_VERSION}"
 VIAddVersionKey "FileVersion"     "${APP_VERSION}.0"
