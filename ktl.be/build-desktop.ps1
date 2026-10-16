@@ -6,7 +6,7 @@ $fe      = Join-Path $repo 'ktl.fe'
 $desktop = Join-Path $root 'ktl.be.desktop'
 $publish = Join-Path $repo 'publish'
 
-Get-Process -Name 'KTL' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+Get-Process -Name 'SaoMai-KySo' -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
 Push-Location $fe
 npm run build -- --configuration desktop
@@ -51,16 +51,16 @@ if (-not $makensis) { throw 'Không thấy makensis.exe. Cài NSIS: winget insta
 
 New-Item -ItemType Directory -Force -Path (Join-Path $root 'installer/installer-output') | Out-Null
 Push-Location (Join-Path $root 'installer')
-& $makensis /V2 'KTL.nsi'
+& $makensis /V2 'SaoMai-KySo.nsi'
 $nsisExit = $LASTEXITCODE
 Pop-Location
 if ($nsisExit -ne 0) { throw "NSIS biên dịch lỗi (mã $nsisExit)." }
 
-$version = ((Get-Item (Join-Path $publish 'KTL.exe')).VersionInfo.ProductVersion -split '\+')[0]
-$setup = Join-Path $repo "KTL-v$version-win-x64-Setup.exe"
-Copy-Item (Join-Path $root 'installer/installer-output/KTL-Setup.exe') $setup -Force
+$version = ((Get-Item (Join-Path $publish 'SaoMai-KySo.exe')).VersionInfo.ProductVersion -split '\+')[0]
+$setup = Join-Path $repo "SaoMai-KySo-v$version-win-x64-Setup.exe"
+Copy-Item (Join-Path $root 'installer/installer-output/SaoMai-KySo-Setup.exe') $setup -Force
 
-$zip = Join-Path $repo "KTL-v$version-win-x64.zip"
+$zip = Join-Path $repo "SaoMai-KySo-v$version-win-x64.zip"
 if (Test-Path $zip) { Remove-Item $zip -Force }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory(

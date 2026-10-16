@@ -74,6 +74,8 @@ __screenshots__/
 # ===== Đóng gói & bộ cài =====
 publish/
 ktl.be/installer/installer-output/
+SaoMai-KySo-v*-Setup.exe
+SaoMai-KySo-v*.zip
 KTL-v*-Setup.exe
 KTL-v*.zip
 

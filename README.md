@@ -1,4 +1,4 @@
-# KTL
+# Sao Mai - Ký số
 
 Ứng dụng desktop trên Windows để xử lý văn bản hành chính: tạo văn bản hàng loạt từ mẫu Word và dữ liệu
 Excel, ký số PDF bằng chứng thư số trên USB token của Ban Cơ yếu Chính phủ.
@@ -6,7 +6,7 @@ Excel, ký số PDF bằng chứng thư số trên USB token của Ban Cơ yếu
 Mọi xử lý chạy **trên máy người dùng**. Tài liệu không rời khỏi máy; thứ duy nhất đi ra mạng là giá trị băm
 gửi tới máy chủ dấu thời gian `tsa.ca.gov.vn` khi ký số.
 
-Phát hành thành một bộ cài NSIS (`KTL-v<phiên bản>-win-x64-Setup.exe`) mang sẵn ứng dụng self-contained và
+Phát hành thành một bộ cài NSIS (`SaoMai-KySo-v<phiên bản>-win-x64-Setup.exe`) mang sẵn ứng dụng self-contained và
 các trình điều khiển token. Máy người dùng không cần cài .NET.
 
 ## Mục lục
@@ -112,8 +112,8 @@ Swagger có ở `/swagger` khi chạy môi trường Development. `/health` dùn
 
 | Đường dẫn | Nội dung |
 |---|---|
-| `%Temp%\KTL\tai-len\` | File kéo thả vào ứng dụng, tự dọn sau 24 giờ |
-| `%Temp%\KTL\tao-van-ban\` | Thư mục làm việc và bản xem trước, bản xem trước tự dọn sau 60 phút |
+| `%Temp%\SaoMai-KySo\tai-len\` | File kéo thả vào ứng dụng, tự dọn sau 24 giờ |
+| `%Temp%\SaoMai-KySo\tao-van-ban\` | Thư mục làm việc và bản xem trước, bản xem trước tự dọn sau 60 phút |
 | `<thư mục cài>\Log\Logs\` | Nhật ký NLog theo ngày, lưu trữ 30 ngày |
 
 File kết quả nằm cạnh file gốc hoặc trong thư mục người dùng chọn, không bao giờ ghi đè file gốc:
@@ -174,7 +174,7 @@ Mở `http://localhost:4200`. Cấu hình `development` gọi API ở `http://lo
 `appsettings.json`, phân tách bằng dấu `;`, giá trị `*` là cho phép mọi origin.
 
 Chạy trong trình duyệt thì không có hộp thoại chọn file native. Muốn thử đúng môi trường desktop thì chạy
-`build-desktop.ps1` rồi mở `publish\KTL.exe`.
+`build-desktop.ps1` rồi mở `publish\SaoMai-KySo.exe`.
 
 Máy phát triển phải cài middleware của token thì mới liệt kê được chứng thư thật, và phải có Microsoft Word
 thì mới thử được Tạo văn bản.
@@ -188,19 +188,19 @@ powershell -ExecutionPolicy Bypass -File ktl.be\build-desktop.ps1
 Script lần lượt:
 
 1. Build Angular với cấu hình `desktop`
-2. Publish `ktl.be.desktop` thành một file `KTL.exe` self-contained cho `win-x64`
+2. Publish `ktl.be.desktop` thành một file `SaoMai-KySo.exe` self-contained cho `win-x64`
 3. Chép frontend vào `publish\wwwroot`
 4. Chép bộ cài trình điều khiển vào `publish\drivers`, tạo thư mục `publish\Log`
-5. Biên dịch `ktl.be\installer\KTL.nsi` bằng `makensis`
+5. Biên dịch `ktl.be\installer\SaoMai-KySo.nsi` bằng `makensis`
 6. Xuất hai file phát hành ra thư mục gốc repo
 
 | File | Dùng cho |
 |---|---|
-| `KTL-v<phiên bản>-win-x64-Setup.exe` | Bộ cài cho người dùng. Đây là file nên phát hành |
-| `KTL-v<phiên bản>-win-x64.zip` | Bản giải nén chạy ngay, có sẵn bộ cài driver trong `drivers\` nhưng không tự cài |
+| `SaoMai-KySo-v<phiên bản>-win-x64-Setup.exe` | Bộ cài cho người dùng. Đây là file nên phát hành |
+| `SaoMai-KySo-v<phiên bản>-win-x64.zip` | Bản giải nén chạy ngay, có sẵn bộ cài driver trong `drivers\` nhưng không tự cài |
 
 Phiên bản lấy từ `<Version>` trong `ktl.be.desktop.csproj`. Khi nâng phiên bản phải sửa đồng thời
-`APP_VERSION` và `VIProductVersion` trong `KTL.nsi`.
+`APP_VERSION` và `VIProductVersion` trong `SaoMai-KySo.nsi`.
 
 Bộ cài trình điều khiển không nằm trong git vì dung lượng lớn và là phần mềm của bên thứ ba. Trước khi đóng
 gói, đặt đủ ba file sau vào `ktl.be/installer/drivers/`, thiếu file nào script sẽ dừng:
@@ -221,16 +221,17 @@ nhầm bảng mã, chữ tiếng Việt trong bộ cài và trong log build bị
 
 ```
 1. Welcome                      -> Next
-2. Chọn thư mục cài             -> mặc định C:\Program Files\KTL
+2. Chọn thư mục cài             -> mặc định C:\Program Files\Sao Mai - Ký số
 3. Tiến độ cài
-   ├─ đóng KTL.exe nếu đang chạy
+   ├─ gỡ bản KTL cũ nếu có (KTL 1.0.0 đến 1.2.0)
+   ├─ đóng SaoMai-KySo.exe nếu đang chạy
    ├─ chép ứng dụng, tạo lối tắt Desktop và Start Menu
    ├─ cấp quyền ghi thư mục Log cho nhóm Users (SID S-1-5-32-545)
    ├─ ghi mục gỡ cài đặt vào Apps & Features
    └─ lần lượt WebView2, bit4id, TokenManager
       ├─ máy đã có     -> bỏ qua
       └─ chưa có       -> cài ngầm, kiểm tra lại trạng thái thật trên máy
-4. Finish                       -> tuỳ chọn chạy KTL ngay, đề nghị khởi động lại nếu vừa cài driver
+4. Finish                       -> tuỳ chọn chạy ứng dụng ngay, đề nghị khởi động lại nếu vừa cài driver
 ```
 
 Thành phần nào cài không được sẽ được liệt kê trong một hộp thoại cuối phiên. Ứng dụng vẫn được cài, chỉ là
@@ -302,13 +303,13 @@ Cả hai phải build thành công và không phát sinh cảnh báo mới. Thay
 được chạy thử trên app desktop với file thật; thay đổi phần ký số cần thử với USB token thật và mở file
 kết quả bằng Adobe Acrobat Reader để kiểm tra chữ ký hợp lệ.
 
-Thay đổi `KTL.nsi` hoặc `build-desktop.ps1` thì chạy lại `build-desktop.ps1` và cài thử bộ cài, tốt nhất trên
+Thay đổi `SaoMai-KySo.nsi` hoặc `build-desktop.ps1` thì chạy lại `build-desktop.ps1` và cài thử bộ cài, tốt nhất trên
 máy ảo sạch.
 
 ### Những thứ không được commit
 
 - Thư mục build: `bin/`, `obj/`, `dist/`, `publish/`, `installer-output/`
-- File phát hành: `KTL-v*-Setup.exe`, `KTL-v*.zip`
+- File phát hành: `SaoMai-KySo-v*-Setup.exe`, `SaoMai-KySo-v*.zip`
 - Bộ cài trình điều khiển trong `ktl.be/installer/drivers/`
 - Cơ sở dữ liệu, log, chứng thư có khoá bí mật (`*.pfx`, `*.p12`), file `.env`
 
@@ -322,7 +323,7 @@ Các mục trên đã có trong `.gitignore`. Kiểm tra `git status` trước k
   sẽ bị ký chồng lên.
 - Thêm hoặc thay chứng thư CA thì cập nhật cả file `.crt` lẫn giá trị SHA-256 ghim trong `SignatureConstants`.
 - Nâng phiên bản thì sửa `<Version>` trong `ktl.be.desktop.csproj` cùng `APP_VERSION`, `VIProductVersion` trong
-  `KTL.nsi`.
+  `SaoMai-KySo.nsi`.
 
 ### Mẫu mô tả pull request
 

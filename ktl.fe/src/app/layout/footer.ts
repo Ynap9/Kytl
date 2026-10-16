@@ -8,7 +8,7 @@ import { Component } from '@angular/core';
         <i class="pi pi-circle-fill text-green-500" style="font-size: 0.5rem"></i>
         Sẵn sàng
       </span>
-      <span>KTL · Trường Đại học Xây dựng Hà Nội</span>
+      <span>Sao Mai - Ký số · Sao Mai Digital Solutions</span>
     </div>
   `
 })
