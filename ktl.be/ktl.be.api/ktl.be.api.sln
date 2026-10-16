@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.37710.0 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ktl.be.api", "ktl.be.api.csproj", "{82385FBE-7591-4BCF-9F2B-D5E66A53D807}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ktl.be.domain", "..\ktl.be.domain\ktl.be.domain.csproj", "{5B5B950E-00E2-4B1A-B4FD-77EEE5F4852E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ktl.be.applications", "..\ktl.be.applications\ktl.be.applications.csproj", "{9A3D4BF2-D8C4-4489-B016-73C41ADF77A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ktl.be.infrastructure.data", "..\ktl.be.infrastructure.data\ktl.be.infrastructure.data.csproj", "{5260D78A-07D4-40B0-B9A2-ABF4EC7ABDEC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ktl.be.infrastructure.external", "..\ktl.be.infrastructure.external\ktl.be.infrastructure.external.csproj", "{A32269B6-8EB1-4A2E-A4E8-D7B35BEA5A08}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ktl.be.shared", "..\ktl.be.shared\ktl.be.shared.csproj", "{4FF54E61-63CD-4982-B92B-BF86B5C53BCB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{82385FBE-7591-4BCF-9F2B-D5E66A53D807}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82385FBE-7591-4BCF-9F2B-D5E66A53D807}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82385FBE-7591-4BCF-9F2B-D5E66A53D807}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82385FBE-7591-4BCF-9F2B-D5E66A53D807}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B5B950E-00E2-4B1A-B4FD-77EEE5F4852E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B5B950E-00E2-4B1A-B4FD-77EEE5F4852E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B5B950E-00E2-4B1A-B4FD-77EEE5F4852E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B5B950E-00E2-4B1A-B4FD-77EEE5F4852E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9A3D4BF2-D8C4-4489-B016-73C41ADF77A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A3D4BF2-D8C4-4489-B016-73C41ADF77A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A3D4BF2-D8C4-4489-B016-73C41ADF77A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A3D4BF2-D8C4-4489-B016-73C41ADF77A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5260D78A-07D4-40B0-B9A2-ABF4EC7ABDEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5260D78A-07D4-40B0-B9A2-ABF4EC7ABDEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5260D78A-07D4-40B0-B9A2-ABF4EC7ABDEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5260D78A-07D4-40B0-B9A2-ABF4EC7ABDEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A32269B6-8EB1-4A2E-A4E8-D7B35BEA5A08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A32269B6-8EB1-4A2E-A4E8-D7B35BEA5A08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A32269B6-8EB1-4A2E-A4E8-D7B35BEA5A08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A32269B6-8EB1-4A2E-A4E8-D7B35BEA5A08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FF54E61-63CD-4982-B92B-BF86B5C53BCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4FF54E61-63CD-4982-B92B-BF86B5C53BCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FF54E61-63CD-4982-B92B-BF86B5C53BCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4FF54E61-63CD-4982-B92B-BF86B5C53BCB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {904C2EEB-07F0-4D32-B177-054561FD6772}
+	EndGlobalSection
+EndGlobal

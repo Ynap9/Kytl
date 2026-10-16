@@ -1,0 +1,129 @@
+<div class="wizard">
+  <header class="wizard__header">
+    <div class="flex shrink-0 items-center gap-2.5">
+      <span class="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--layout-accent)] text-white">
+        <i class="pi pi-clone"></i>
+      </span>
+      <span class="text-[15px] font-semibold text-slate-800">{{ title }}</span>
+    </div>
+
+    <span class="wizard__divider"></span>
+
+    <nav class="flex min-w-0 items-center">
+      @for (item of steps; track item.step; let last = $last) {
+        <button
+          type="button"
+          class="wizard__step"
+          [class.is-active]="item.step === step()"
+          [class.is-done]="isStepDone(item.step)"
+          [disabled]="!isStepDone(item.step) || busy()"
+          (click)="goToStep(item.step)"
+        >
+          <span class="wizard__dot">
+            @if (isStepDone(item.step)) {
+              <i class="pi pi-check"></i>
+            } @else {
+              {{ item.step + 1 }}
+            }
+          </span>
+          <span class="flex flex-col items-start leading-tight">
+            <span class="wizard__kicker">BƯỚC {{ item.step + 1 }}</span>
+            <span class="wizard__title">{{ item.label }}</span>
+          </span>
+        </button>
+        @if (!last) {
+          <i class="pi pi-angle-right mx-2 text-xs text-slate-300"></i>
+        }
+      }
+    </nav>
+  </header>
+
+  <div class="wizard__body">
+    @switch (step()) {
+      @case (EStep.Source) {
+        <app-merge-source-step
+          [(templatePath)]="templatePath"
+          [(dataPath)]="dataPath"
+          [mapping]="mapping()"
+          [mappingFresh]="mappingFresh()"
+          [reading]="reading()"
+          [canRead]="sourceReady()"
+          (read)="readData()"
+        />
+      }
+      @case (EStep.Mapping) {
+        <app-merge-mapping-step
+          [templatePath]="baseRequest().templatePath"
+          [dataPath]="baseRequest().dataPath"
+          [templateName]="templateName()"
+          [validation]="validation()"
+          [validating]="validating()"
+          [(mapping)]="mapping"
+          [(fields)]="fields"
+          [(fileNameColumnNumber)]="fileNameColumnNumber"
+          (validate)="validate()"
+        />
+      }
+      @case (EStep.Stamp) {
+        <app-merge-stamp-step
+          [request]="baseRequest()"
+          [rows]="validation()?.rows ?? []"
+          [(enabled)]="stampEnabled"
+          [(sealImagePath)]="sealImagePath"
+          [(wetSignatureImagePath)]="wetSignatureImagePath"
+          [(stamps)]="stamps"
+        />
+      }
+      @case (EStep.Run) {
+        <app-merge-run-step
+          [request]="request()"
+          [templateName]="templateName()"
+          [fileNameHeader]="fileNameHeader()"
+          [(outputFolder)]="outputFolder"
+          [(running)]="running"
+        />
+      }
+    }
+  </div>
+
+  <footer class="wizard__nav">
+    <span class="min-w-0 truncate text-sm text-slate-500">
+      <span class="font-semibold text-slate-700">Bước {{ step() + 1 }}/{{ steps.length }}</span>
+      — {{ currentStep().description }}
+    </span>
+
+    <div class="flex shrink-0 items-center gap-2">
+      @if (step() !== EStep.Source) {
+        <p-button
+          label="Quay lại"
+          icon="pi pi-angle-left"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (onClick)="back()"
+        />
+      }
+      @if (step() !== EStep.Run) {
+        <p-button
+          label="Tiếp theo"
+          icon="pi pi-angle-right"
+          iconPos="right"
+          styleClass="min-w-36 justify-center"
+          [loading]="reading() || validating()"
+          [disabled]="!canNext()"
+          (onClick)="next()"
+        />
+      } @else if (running()) {
+        <p-button label="Dừng" icon="pi pi-stop-circle" severity="danger" styleClass="min-w-36 justify-center" (onClick)="stopRun()" />
+      } @else {
+        <p-button
+          [label]="runFinished() ? 'Tạo lại' : 'Tạo file PDF'"
+          icon="pi pi-play"
+          styleClass="min-w-36 justify-center"
+          [disabled]="!canStart()"
+          (onClick)="startRun()"
+        />
+      }
+    </div>
+  </footer>
+</div>

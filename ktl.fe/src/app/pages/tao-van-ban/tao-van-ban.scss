@@ -1,0 +1,117 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.wizard {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--layout-border);
+  border-radius: 8px;
+  background: #f5f7fa;
+
+  &__header,
+  &__nav {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 1rem;
+    background: #fff;
+  }
+
+  &__header {
+    padding: 0.625rem 1rem;
+    border-bottom: 1px solid var(--layout-border);
+  }
+
+  &__nav {
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--layout-border);
+  }
+
+  &__divider {
+    width: 1px;
+    height: 1.75rem;
+    background: var(--layout-border);
+  }
+
+  &__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    padding: 1rem;
+    overflow: auto;
+  }
+
+  &__step {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    cursor: default;
+
+    &.is-done:not(:disabled):hover {
+      background: #eff3f8;
+    }
+  }
+
+  &__dot {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 1.6875rem;
+    height: 1.6875rem;
+    border-radius: 9999px;
+    background: #e1e6ee;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #5a6472;
+
+    .pi {
+      font-size: 0.6875rem;
+    }
+
+    .is-active & {
+      background: var(--layout-accent);
+      color: #fff;
+    }
+
+    .is-done & {
+      background: #1f9d55;
+      color: #fff;
+    }
+  }
+
+  &__kicker {
+    font-size: 0.625rem;
+    letter-spacing: 0.02em;
+    color: #5a6472;
+
+    .is-active & {
+      color: var(--layout-accent);
+    }
+  }
+
+  &__title {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #5a6472;
+    white-space: nowrap;
+
+    .is-active &,
+    .is-done & {
+      color: #1a1a1a;
+    }
+  }
+}

@@ -1,0 +1,436 @@
+<aside class="flex min-h-0 w-[24rem] shrink-0 flex-col overflow-hidden rounded-lg border border-[var(--layout-border)] bg-white">
+  <header class="flex shrink-0 items-center gap-3 border-b border-[var(--layout-border)] px-4 py-3">
+    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-50 text-red-600">
+      <i class="pi pi-verified"></i>
+    </span>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <span class="font-semibold text-slate-800">Dấu & chữ ký</span>
+      <span class="truncate text-xs text-slate-500">{{ subtitle() }}</span>
+    </div>
+    @if (toggleable()) {
+      <p-toggleswitch [ngModel]="enabled()" (ngModelChange)="enabled.set($event)" />
+    }
+  </header>
+
+  @if (!enabled()) {
+    <div class="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+      <span class="flex h-14 w-14 items-center justify-center rounded-full bg-[#f5f7fa] text-slate-400">
+        <i class="pi pi-images text-2xl"></i>
+      </span>
+      <span class="font-semibold text-slate-700">Chưa bật dấu &amp; chữ ký</span>
+      <span class="text-[13px] leading-5 text-slate-500">
+        Bạn đang xem văn bản đã nhồi dữ liệu. Bật để đặt dấu đỏ, chữ ký tươi lên trang; không cần thì bấm Tiếp theo.
+      </span>
+      <p-button label="Bật dấu &amp; chữ ký" icon="pi pi-plus" size="small" [outlined]="true" (onClick)="enabled.set(true)" />
+    </div>
+  } @else {
+    <div class="flex min-h-0 flex-1 flex-col overflow-auto">
+      <ng-content select="[designerConfig]" />
+
+      <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
+        <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
+          <span>Ảnh mẫu</span>
+          <span class="text-xs font-normal text-slate-400">Kéo ảnh thả vào trang</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          @for (kind of kinds; track kind) {
+            <div class="flex min-w-0 flex-col gap-1.5">
+              <div
+                class="stamp-tile checker"
+                [class.stamp-tile--empty]="!imageUrl(kind)"
+                [class.stamp-tile--over]="tileDragKind() === kind"
+                (dragover)="onTileDragOver($event, kind)"
+                (dragleave)="onTileDragLeave()"
+                (drop)="onTileDrop($event, kind)"
+                (click)="imageUrl(kind) ? null : browseImage(kind)"
+              >
+                @if (imageUrl(kind); as url) {
+                  <img
+                    class="stamp-tile__image"
+                    [class.cursor-grab]="canPlace()"
+                    [class.opacity-50]="!canPlace()"
+                    [src]="url"
+                    [alt]="kindLabel(kind)"
+                    [attr.draggable]="canPlace()"
+                    [pTooltip]="canPlace() ? 'Kéo thả vào trang' : ''"
+                    tooltipPosition="top"
+                    (dragstart)="onPaletteDragStart($event, kind)"
+                  />
+                  @if (stampCount(kind) > 0) {
+                    <span class="stamp-tile__badge">{{ stampCount(kind) }} khối</span>
+                  }
+                  <span class="stamp-tile__actions">
+                    <button
+                      type="button"
+                      class="stamp-tile__action"
+                      aria-label="Đổi ảnh"
+                      pTooltip="Đổi ảnh"
+                      tooltipPosition="top"
+                      (click)="$event.stopPropagation(); browseImage(kind)"
+                    >
+                      <i class="pi pi-sync"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="stamp-tile__action stamp-tile__action--danger"
+                      aria-label="Bỏ ảnh"
+                      pTooltip="Bỏ ảnh và các khối của ảnh này"
+                      tooltipPosition="top"
+                      (click)="$event.stopPropagation(); onImagePathChange(kind, '')"
+                    >
+                      <i class="pi pi-times"></i>
+                    </button>
+                  </span>
+                } @else {
+                  <i class="pi pi-plus text-lg text-slate-400"></i>
+                  <span class="text-[13px] font-medium text-slate-600">Chọn ảnh</span>
+                  <span class="text-[11px] text-slate-400">hoặc kéo file vào</span>
+                }
+                @if (uploadingKind() === kind) {
+                  <span class="absolute inset-0 flex items-center justify-center bg-white/70">
+                    <i class="pi pi-spin pi-spinner text-slate-500"></i>
+                  </span>
+                }
+              </div>
+
+              <div class="flex min-w-0 items-center gap-1.5">
+                <span class="h-2 w-2 shrink-0 rounded-full" [ngClass]="kind === EKind.Seal ? 'bg-red-500' : 'bg-blue-600'"></span>
+                <span class="min-w-0 flex-1 truncate text-[13px] font-medium text-slate-700">{{ kindLabel(kind) }}</span>
+              </div>
+
+              @if (!filePicker.canBrowse) {
+                <input
+                  pInputText
+                  pSize="small"
+                  class="w-full"
+                  placeholder="Dán đường dẫn (web)"
+                  [ngModel]="imagePath(kind)"
+                  [ngModelOptions]="{ updateOn: 'blur' }"
+                  (ngModelChange)="onImagePathChange(kind, $event)"
+                />
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
+        <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
+          <span>Khối đã đặt <span class="font-normal text-slate-400">· {{ stamps().length }}</span></span>
+          @if (stamps().length > 1 && mode() === EMode.Edit) {
+            <button type="button" class="cursor-pointer rounded border-0 bg-transparent px-1 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50" (click)="clearStamps()">Xoá tất cả</button>
+          }
+        </div>
+
+        @if (stamps().length === 0) {
+          <div class="flex items-center gap-3 rounded-md bg-[#f5f7fa] px-3 py-2.5 text-[12.5px] text-slate-500">
+            <i class="pi pi-arrow-left text-slate-400"></i>
+            Kéo ảnh mẫu thả vào trang để tạo khối.
+          </div>
+        } @else {
+          <div class="flex flex-col gap-1">
+            @for (stamp of stamps(); track $index) {
+              <div class="layer-row group" [class.layer-row--active]="$index === activeIndex()" (click)="selectStamp($index)">
+                <span class="layer-row__thumb checker">
+                  @if (imageUrl(stamp.kind); as url) {
+                    <img [src]="url" [alt]="kindLabel(stamp.kind)" />
+                  }
+                </span>
+                <span class="flex min-w-0 flex-1 flex-col">
+                  <span class="truncate text-[13px] font-medium text-slate-800">{{ kindLabel(stamp.kind) }}</span>
+                  <span class="truncate text-[11.5px] text-slate-500">Đặt trang {{ stamp.pageNumber }} · {{ stampSummary(stamp) }}@if (ownPages(stamp).length > 0) { · {{ ownPages(stamp).length }} trang riêng }</span>
+                </span>
+                @if (mode() === EMode.Edit) {
+                  <button
+                    type="button"
+                    class="cursor-pointer rounded border-0 bg-transparent px-1 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100"
+                    aria-label="Xoá khối"
+                    pTooltip="Xoá khối"
+                    (click)="$event.stopPropagation(); removeStamp($index)"
+                  >
+                    <i class="pi pi-trash text-xs"></i>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      @if (activeStamp(); as stamp) {
+        <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
+          <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
+            <span>Thuộc tính · Khối {{ activeIndex() + 1 }}</span>
+            <span class="text-xs font-normal text-slate-400">{{ kindLabel(stamp.kind) }}</span>
+          </div>
+
+          @if (mode() === EMode.Final) {
+            <p class="rounded-md bg-[#f5f7fa] px-3 py-2.5 text-[12.5px] text-slate-500">Chuyển về chế độ Đặt vị trí để chỉnh khối.</p>
+          } @else {
+            <div class="flex flex-col gap-4">
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[13px] font-semibold text-slate-700">Áp dụng cho</span>
+                <div class="grid grid-cols-2 gap-1.5">
+                  @for (option of scopeOptions; track option.value) {
+                    <button
+                      type="button"
+                      class="seg-option"
+                      [class.seg-option--active]="stamp.scope === option.value"
+                      (click)="onScopeChange(option.value)"
+                    >
+                      <span class="seg-option__label">{{ option.label }}</span>
+                      <span class="seg-option__hint">{{ option.hint }}</span>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              @if (stamp.scope === EScope.Repeat) {
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[13px] font-semibold text-slate-700">Lặp trên</span>
+                  <div class="grid grid-cols-2 gap-1.5">
+                    @for (option of repeatOptions; track option.value) {
+                      <button
+                        type="button"
+                        class="seg-option"
+                        [class.seg-option--active]="stamp.repeatMode === option.value"
+                        (click)="onRepeatModeChange(option.value)"
+                      >
+                        <span class="seg-option__label">{{ option.label }}</span>
+                        <span class="seg-option__hint">{{ option.hint }}</span>
+                      </button>
+                    }
+                  </div>
+                  @if (stamp.repeatMode === ERepeat.Custom) {
+                    <input
+                      pInputText
+                      pSize="small"
+                      class="mt-1 w-full"
+                      placeholder="Ví dụ: 1,3,5-7"
+                      [ngModel]="stamp.customPages ?? ''"
+                      (ngModelChange)="updateActiveStamp({ customPages: $event })"
+                    />
+                    @if (customPagesError(stamp); as error) {
+                      <small class="text-red-600">{{ error }}</small>
+                    }
+                  }
+                </div>
+
+                <div class="flex flex-col gap-1.5">
+                  <span class="text-[13px] font-semibold text-slate-700">Khi kéo thả</span>
+                  <div class="grid grid-cols-2 gap-1.5">
+                    @for (option of editScopeOptions; track option.value) {
+                      <button
+                        type="button"
+                        class="seg-option"
+                        [class.seg-option--active]="editScope() === option.value"
+                        (click)="editScope.set(option.value)"
+                      >
+                        <span class="seg-option__label">{{ option.label }}</span>
+                        <span class="seg-option__hint">{{ option.hint }}</span>
+                      </button>
+                    }
+                  </div>
+                  @if (ownPages(stamp); as own) {
+                    @if (own.length > 0) {
+                      <div class="flex flex-col gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800">
+                        <span class="flex items-center gap-2">
+                          <i class="pi pi-map-marker text-xs"></i>
+                          <span class="min-w-0 break-words">Vị trí riêng: trang {{ own.join(', ') }}</span>
+                        </span>
+                        <span class="flex flex-wrap gap-x-3 gap-y-1 pl-5">
+                          @if (activeCopyPage() !== null && own.includes(activeCopyPage()!)) {
+                            <button
+                              type="button"
+                              class="cursor-pointer border-0 bg-transparent p-0 font-medium text-[var(--layout-accent)] hover:underline"
+                              (click)="resetPagePosition(activeCopyPage()!)"
+                            >
+                              Đồng bộ trang {{ activeCopyPage() }}
+                            </button>
+                          }
+                          <button
+                            type="button"
+                            class="cursor-pointer border-0 bg-transparent p-0 font-medium text-[var(--layout-accent)] hover:underline"
+                            (click)="resetPagePositions()"
+                          >
+                            Đồng bộ tất cả
+                          </button>
+                        </span>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+
+              <div class="flex flex-col gap-1.5">
+                @if (showPageChips()) {
+                  <span class="text-[13px] font-semibold text-slate-700">
+                    Trang được đóng <span class="font-normal text-slate-400">· bấm số trang để thêm/bớt</span>
+                  </span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (page of pageNumbers(); track page) {
+                      <button
+                        type="button"
+                        class="page-chip"
+                        [class.page-chip--on]="resolvePages(stamp).includes(page)"
+                        [class.page-chip--origin]="page === stamp.pageNumber"
+                        [attr.aria-pressed]="resolvePages(stamp).includes(page)"
+                        [pTooltip]="page === stamp.pageNumber ? 'Trang đặt khối' : ''"
+                        (click)="togglePage(page)"
+                      >
+                        {{ page }}
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-[13px] font-semibold text-slate-700">
+                    Trang được đóng
+                    <span class="font-normal text-slate-400">· {{ resolvePages(stamp).length }}/{{ pageCount() }} trang</span>
+                  </span>
+                  <div class="rounded-md bg-[#f5f7fa] px-3 py-2 font-mono text-[12.5px] break-all text-slate-700">
+                    {{ appliedSummary(stamp) }}
+                  </div>
+                  @if (activeCopyPage(); as page) {
+                    <p-button
+                      [label]="(resolvePages(stamp).includes(page) ? 'Bỏ trang ' : 'Thêm trang ') + page"
+                      [icon]="resolvePages(stamp).includes(page) ? 'pi pi-minus' : 'pi pi-plus'"
+                      severity="secondary"
+                      size="small"
+                      [outlined]="true"
+                      styleClass="w-full justify-center"
+                      (onClick)="togglePage(page)"
+                    />
+                  }
+                  <small class="text-slate-500">Bấm vào khối ở trang cần thêm/bớt, hoặc nhập danh sách trang ở mục Tùy chọn.</small>
+                }
+              </div>
+
+              <div class="grid grid-cols-3 gap-1.5">
+                <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
+                  <span class="text-[11px] text-slate-500">Đang chỉnh</span>
+                  <span class="text-[13px] font-semibold text-slate-800">Trang {{ activeCopyPage() }}</span>
+                </div>
+                <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
+                  <span class="text-[11px] text-slate-500">X · Y</span>
+                  <span class="text-[13px] font-semibold text-slate-800">{{ (activeArea()!.xRatio * 100).toFixed(0) }}% · {{ (activeArea()!.yRatio * 100).toFixed(0) }}%</span>
+                </div>
+                <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
+                  <span class="text-[11px] text-slate-500">Rộng</span>
+                  <span class="text-[13px] font-semibold text-slate-800">{{ (activeArea()!.widthRatio * 100).toFixed(0) }}%</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-2">
+                <p-button
+                  label="Kích cỡ gốc"
+                  icon="pi pi-refresh"
+                  severity="secondary"
+                  size="small"
+                  [outlined]="true"
+                  styleClass="w-full justify-center"
+                  (onClick)="resetStampSize()"
+                />
+                <p-button
+                  label="Xoá khối"
+                  icon="pi pi-trash"
+                  severity="danger"
+                  size="small"
+                  [outlined]="true"
+                  styleClass="w-full justify-center"
+                  (onClick)="removeStamp(activeIndex())"
+                />
+              </div>
+            </div>
+          }
+        </section>
+      } @else if (stamps().length > 0) {
+        <section class="border-b border-[var(--layout-border)] px-4 py-3.5 text-[12.5px] text-slate-500">Chọn một khối trên trang hoặc trong danh sách để chỉnh thuộc tính.</section>
+      }
+    </div>
+  }
+</aside>
+
+<section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--layout-border)] bg-white">
+  <div class="flex shrink-0 items-center gap-3 border-b border-[var(--layout-border)] px-3 py-2">
+    <p-selectbutton
+      [options]="modeOptions()"
+      [ngModel]="mode()"
+      optionLabel="label"
+      optionValue="value"
+      optionDisabled="disabled"
+      [allowEmpty]="false"
+      size="small"
+      (onChange)="onModeChange($event.value)"
+    />
+
+    <ng-content select="[designerNav]" />
+  </div>
+
+  @if (mode() === EMode.Final && previewWarnings().length > 0) {
+    <div class="flex shrink-0 flex-col gap-1 border-b border-amber-200 bg-amber-50 px-3 py-2">
+      @for (warning of previewWarnings(); track $index) {
+        <span class="flex gap-1.5 text-[12.5px] text-amber-800"><i class="pi pi-exclamation-triangle mt-0.5 text-[11px]"></i>{{ warning }}</span>
+      }
+    </div>
+  }
+
+  <div class="flex min-h-0 flex-1 flex-col p-3">
+    <app-pdf-pages
+      [url]="previewUrl()"
+      [busy]="previewLoading()"
+      [emptyText]="emptyText()"
+      (loaded)="onPdfLoaded($event)"
+      (failed)="onPdfFailed()"
+    >
+      <ng-template #pageOverlay let-page>
+        @if (enabled() && mode() === EMode.Edit) {
+          <div class="stamp-layer" (dragover)="onPageDragOver($event)" (drop)="onPageDrop($event, page)">
+            @for (item of pageItems(page); track item.index) {
+              <div
+                class="stamp-block"
+                [class.stamp-block--active]="isActiveCopy(item)"
+                [class.stamp-block--ghost]="item.ghost && !item.own && !isActiveCopy(item)"
+                [class.stamp-block--own]="item.own"
+                [class.stamp-block--excluded]="item.excluded"
+                [style.left.%]="item.area.xRatio * 100"
+                [style.top.%]="item.area.yRatio * 100"
+                [style.width.%]="item.area.widthRatio * 100"
+                [style.height.%]="item.area.heightRatio * 100"
+                [pTooltip]="
+                  item.own
+                    ? 'Vị trí riêng của trang ' + item.page
+                    : item.ghost
+                      ? 'Lặp từ khối ' + (item.index + 1)
+                      : item.excluded
+                        ? 'Trang này không nằm trong kiểu lặp đã chọn'
+                        : ''
+                "
+                (pointerdown)="onStampPointerDown($event, item, 'move')"
+                (pointermove)="onStampPointerMove($event)"
+                (pointerup)="onStampPointerUp($event)"
+              >
+                @if (imageUrl(item.stamp.kind); as url) {
+                  <img class="stamp-block__image" [src]="url" [alt]="kindLabel(item.stamp.kind)" />
+                }
+                @if (item.own) {
+                  <span class="stamp-block__tag">Riêng</span>
+                }
+                @if (isActiveCopy(item)) {
+                  @for (corner of resizeCorners; track corner) {
+                    <span
+                      class="stamp-block__handle stamp-block__handle--{{ corner }}"
+                      (pointerdown)="onStampPointerDown($event, item, corner)"
+                      (pointermove)="onStampPointerMove($event)"
+                      (pointerup)="onStampPointerUp($event)"
+                    ></span>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+      </ng-template>
+    </app-pdf-pages>
+  </div>
+</section>

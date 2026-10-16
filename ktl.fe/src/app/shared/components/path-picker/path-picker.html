@@ -1,0 +1,120 @@
+<div class="flex flex-col gap-1.5">
+  @if (showDropzone()) {
+    <div
+      class="relative flex cursor-pointer items-center gap-3 rounded-lg border-2 border-dashed px-3 py-2.5 transition-colors"
+      [ngClass]="
+        dragOver()
+          ? 'border-[var(--layout-accent)] bg-[#eff3fa]'
+          : invalid()
+            ? 'border-red-300 bg-red-50'
+            : 'border-slate-300 bg-[#f8fafc] hover:border-[var(--layout-accent)] hover:bg-[#eff3fa]'
+      "
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="pick()"
+    >
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md" [ngClass]="iconClass()">
+        <i [class]="icon() || 'pi pi-cloud-upload'"></i>
+      </span>
+      <span class="flex min-w-0 flex-1 flex-col">
+        <span class="truncate font-medium text-slate-700">Kéo thả {{ label() }} vào đây</span>
+        @if (hint()) {
+          <span class="truncate text-xs text-slate-400">{{ hint() }}</span>
+        }
+      </span>
+      <p-button
+        [label]="pickLabel()"
+        icon="pi pi-folder-open"
+        severity="secondary"
+        size="small"
+        [outlined]="true"
+        styleClass="shrink-0"
+        (onClick)="$event.stopPropagation(); pick()"
+      />
+      @if (uploading()) {
+        <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
+          <i class="pi pi-spin pi-spinner text-xl text-slate-500"></i>
+        </div>
+      }
+    </div>
+  } @else {
+    <div
+      class="group flex w-full items-center rounded-lg border transition-colors hover:border-[var(--layout-accent)]"
+      [ngClass]="
+        dragOver()
+          ? 'border-[var(--layout-accent)] bg-[#eff3fa]'
+          : invalid()
+            ? 'border-red-300 bg-red-50'
+            : value()
+              ? 'border-[var(--layout-border)] bg-white'
+              : 'border-dashed border-slate-300 bg-[#f8fafc] hover:bg-[#eff3fa]'
+      "
+      [class.pointer-events-none]="disabled()"
+      [class.opacity-60]="disabled()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+    >
+      <button
+        type="button"
+        class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 border-0 bg-transparent text-left"
+        [ngClass]="compact() ? 'px-2.5 py-1.5' : 'px-3 py-2.5'"
+        [disabled]="disabled()"
+        (click)="pick()"
+      >
+        @if (icon()) {
+          <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md" [ngClass]="iconClass()">
+            <i [class]="icon()"></i>
+          </span>
+        }
+        <span class="flex min-w-0 flex-1 flex-col">
+          @if (value()) {
+            <span class="truncate font-medium text-slate-800" [ngClass]="{ 'text-[13px]': compact() }">{{ fileName() }}</span>
+            <span class="truncate text-xs text-slate-500" [title]="value()">{{ pathText() }}</span>
+          } @else {
+            <span class="font-medium text-slate-600" [ngClass]="{ 'text-[13px]': compact() }">
+              {{ droppable() ? 'Bấm chọn hoặc kéo thả ' + label() : 'Bấm để chọn ' + label() }}
+            </span>
+            @if (hint()) {
+              <span class="truncate text-xs text-slate-400">{{ hint() }}</span>
+            }
+          }
+        </span>
+        @if (uploading()) {
+          <i class="pi pi-spin pi-spinner shrink-0 text-slate-500"></i>
+        } @else {
+          <span class="shrink-0 text-[13px] font-medium text-[var(--layout-accent)] group-hover:underline">
+            {{ value() ? 'Đổi' : pickLabel() }}
+          </span>
+        }
+      </button>
+      @if (value()) {
+        <p-button
+          icon="pi pi-times"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          pTooltip="Bỏ chọn"
+          ariaLabel="Bỏ chọn"
+          styleClass="mr-1"
+          [disabled]="disabled()"
+          (onClick)="clear()"
+        />
+      }
+    </div>
+  }
+
+  @if (!filePicker.canBrowse) {
+    <input
+      pInputText
+      pSize="small"
+      class="w-full"
+      [placeholder]="'Dán đường dẫn ' + label() + ' (chỉ dùng khi chạy trên web để thử)'"
+      [disabled]="disabled()"
+      [ngModel]="value()"
+      [ngModelOptions]="{ updateOn: 'blur' }"
+      (ngModelChange)="setValue($event)"
+    />
+  }
+</div>

@@ -1,0 +1,91 @@
+<div class="flex min-h-0 flex-1 flex-col gap-4">
+  <app-breadcrumb [home]="home" [items]="breadcrumbItems" />
+
+  <h1 class="text-xl font-semibold text-slate-800">Ký số</h1>
+
+  <div class="grid grid-cols-12 gap-4">
+    <div class="col-span-7 min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <app-pdf-source-picker title="File, thư mục cần ký" [droppable]="false" [(sources)]="sources" />
+    </div>
+
+    <div class="col-span-5 flex min-w-0 flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-center justify-between gap-2">
+        <h2 class="flex items-center gap-2 text-base font-semibold text-slate-800">
+          <i class="pi pi-verified text-primary"></i>
+          Cấu hình chữ ký
+        </h2>
+        <p-button
+          label="Quản lý template"
+          icon="pi pi-cog"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          (onClick)="goToTemplates()"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Template chữ ký</label>
+        <p-select
+          [options]="templates()"
+          [ngModel]="templateId()"
+          optionLabel="tenTemplate"
+          optionValue="id"
+          [filter]="true"
+          filterBy="tenTemplate,tenChungThu"
+          [loading]="templateLoading()"
+          placeholder="Chọn template đã cấu hình"
+          emptyMessage="Chưa có template nào"
+          class="w-full"
+          (onChange)="onTemplateChange($event.value)"
+        />
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-medium text-slate-700">Chứng thư số</label>
+        <div class="flex items-center gap-2">
+          <p-select
+            [options]="certs()"
+            [ngModel]="thumbprint()"
+            optionLabel="commonName"
+            optionValue="thumbprint"
+            [filter]="true"
+            filterBy="commonName,serialNumber,issuerCommonName"
+            [loading]="certLoading()"
+            [placeholder]="certName() || 'Chọn chứng thư số'"
+            class="min-w-0 flex-1"
+            (onChange)="onCertChange($event.value)"
+          />
+          <p-button
+            label="Xác thực PIN"
+            icon="pi pi-key"
+            [outlined]="true"
+            [disabled]="!thumbprint()"
+            [loading]="verifying()"
+            (onClick)="verify()"
+          />
+        </div>
+        @if (isVerified()) {
+          <p-tag severity="success" icon="pi pi-check-circle" value="Đã xác thực, sẵn sàng ký" class="self-start" />
+        } @else {
+          <small class="text-slate-500">Chưa xác thực thì bấm Ký số sẽ tự mở hộp nhập PIN của token.</small>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (!selectedTemplate()) {
+    <p-message severity="info" text="Chọn template chữ ký để bắt đầu. Chưa có template thì tạo ở Cấu hình → Template chữ ký." />
+  } @else if (sources().length === 0) {
+    <p-message severity="info" text="Chọn file hoặc thư mục cần ký để kiểm tra định dạng và ký số." />
+  } @else {
+    <app-sign-step
+      [thumbprint]="thumbprint() ?? ''"
+      [certName]="certName()"
+      [sources]="sources()"
+      [config]="signConfig()"
+      [reason]="selectedTemplate()?.lyDoKy ?? ''"
+      [location]="selectedTemplate()?.noiKy ?? ''"
+    />
+  }
+</div>

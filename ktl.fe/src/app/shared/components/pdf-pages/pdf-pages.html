@@ -1,0 +1,26 @@
+<div #wrap class="pdf-pages">
+  @for (page of pages(); track page.number) {
+    <div class="pdf-pages__page" [style.width.px]="page.cssWidth" [style.height.px]="page.cssHeight">
+      <canvas #canvas class="block h-full w-full bg-white" [attr.data-page]="page.number"></canvas>
+      @if (pageOverlay(); as overlay) {
+        <div class="absolute inset-0">
+          <ng-container [ngTemplateOutlet]="overlay" [ngTemplateOutletContext]="{ $implicit: page }" />
+        </div>
+      }
+      <span class="pdf-pages__badge">Trang {{ page.number }}/{{ pages().length }}</span>
+    </div>
+  } @empty {
+    @if (!loading() && !busy()) {
+      <div class="flex flex-1 flex-col items-center justify-center gap-2 text-slate-400">
+        <i class="pi pi-file-pdf text-4xl"></i>
+        <span class="text-sm">{{ emptyText() }}</span>
+      </div>
+    }
+  }
+
+  @if (loading() || busy()) {
+    <div class="pdf-pages__loading">
+      <i class="pi pi-spin pi-spinner text-3xl text-slate-500"></i>
+    </div>
+  }
+</div>

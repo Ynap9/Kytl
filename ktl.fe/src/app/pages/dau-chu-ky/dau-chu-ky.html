@@ -1,0 +1,122 @@
+<div class="stamp-frame">
+  <header class="stamp-frame__header">
+    <div class="flex min-w-0 items-center gap-2.5">
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-600 text-white">
+        <i class="pi pi-images"></i>
+      </span>
+      <div class="flex min-w-0 flex-col leading-tight">
+        <span class="text-[15px] font-semibold text-slate-800">{{ title }}</span>
+        <span class="truncate text-xs text-slate-500">Chèn dấu đỏ, chữ ký tươi vào file PDF có sẵn trên máy</span>
+      </div>
+    </div>
+
+    @if (loadingFiles()) {
+      <span class="ml-auto flex items-center gap-2 text-sm text-slate-500"><i class="pi pi-spin pi-spinner"></i>Đang đọc file...</span>
+    } @else if (files().length > 0) {
+      <div class="ml-auto flex items-center gap-2 text-sm">
+        <span class="rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700">{{ files().length }} file PDF</span>
+        @if (signedCount() > 0) {
+          <span class="rounded-full bg-amber-50 px-3 py-1 font-medium text-amber-700" pTooltip="Chữ ký số trong bản mới sẽ mất hiệu lực">
+            {{ signedCount() }} file đã ký số
+          </span>
+        }
+        @if (unreadableCount() > 0) {
+          <span class="rounded-full bg-red-50 px-3 py-1 font-medium text-red-600">{{ unreadableCount() }} file không đọc được</span>
+        }
+      </div>
+    }
+  </header>
+
+  <div class="stamp-frame__body">
+    <app-stamp-designer
+      [previewUrl]="previewUrl()"
+      [previewLoading]="previewLoading()"
+      [previewWarnings]="previewWarnings()"
+      [toggleable]="false"
+      [enabled]="true"
+      subtitle="Chèn vào file PDF có sẵn"
+      [emptyText]="files().length > 0 ? 'Đang mở file PDF.' : 'Chọn file hoặc thư mục PDF ở cột bên trái.'"
+      [(sealImagePath)]="sealImagePath"
+      [(wetSignatureImagePath)]="wetSignatureImagePath"
+      [(stamps)]="stamps"
+      [(mode)]="mode"
+    >
+      <div designerConfig>
+        <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
+          <app-pdf-source-picker [(sources)]="sources" [(droppedSources)]="droppedSources" />
+        </section>
+
+        @if (files().length > 0) {
+          <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
+            <div class="mb-2 flex items-center justify-between text-sm font-semibold text-slate-800">
+              <span>Danh sách file <span class="font-normal text-slate-400">· {{ files().length }}</span></span>
+              <p-button icon="pi pi-refresh" severity="secondary" size="small" [text]="true" pTooltip="Đọc lại danh sách file" ariaLabel="Đọc lại danh sách file" (onClick)="reloadFiles()" />
+            </div>
+            <div class="flex max-h-48 flex-col gap-0.5 overflow-auto">
+              @for (file of files(); track file.fullPath; let i = $index) {
+                <button type="button" class="file-row" [class.file-row--active]="i === fileIndex()" (click)="selectFile(i)">
+                  <span class="w-5 shrink-0 text-right text-[11px] text-slate-400">{{ i + 1 }}</span>
+                  <span class="min-w-0 flex-1 truncate text-left" [title]="file.fullPath">{{ file.name }}</span>
+                  @if (file.alreadySigned) {
+                    <span class="shrink-0 rounded bg-amber-50 px-1.5 text-[10.5px] font-medium text-amber-700">Đã ký số</span>
+                  }
+                  @if (!file.readable) {
+                    <span class="shrink-0 rounded bg-red-50 px-1.5 text-[10.5px] font-medium text-red-600">Lỗi đọc</span>
+                  } @else {
+                    <span class="shrink-0 text-[11px] text-slate-400">{{ file.pageCount }} tr</span>
+                  }
+                </button>
+              }
+            </div>
+          </section>
+        }
+      </div>
+
+      <div designerNav class="ml-auto flex min-w-0 items-center gap-1">
+        @if (currentFile()?.alreadySigned) {
+          <span class="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Đã ký số</span>
+        }
+        <p-button icon="pi pi-angle-left" severity="secondary" size="small" [text]="true" pTooltip="File trước" ariaLabel="File trước" [disabled]="fileIndex() <= 0" (onClick)="goToFile(-1)" />
+        <p-select
+          [options]="fileOptions()"
+          [ngModel]="fileIndex()"
+          optionLabel="label"
+          optionValue="value"
+          [filter]="true"
+          filterBy="label"
+          size="small"
+          placeholder="Chưa có file"
+          class="w-72"
+          (onChange)="fileIndex.set($event.value)"
+        />
+        <span class="w-12 text-center text-sm text-slate-500">{{ files().length > 0 ? fileIndex() + 1 : 0 }}/{{ files().length }}</span>
+        <p-button icon="pi pi-angle-right" severity="secondary" size="small" [text]="true" pTooltip="File sau" ariaLabel="File sau" [disabled]="fileIndex() >= files().length - 1" (onClick)="goToFile(1)" />
+      </div>
+    </app-stamp-designer>
+  </div>
+
+  <footer class="stamp-frame__footer">
+    <p-button
+      [label]="files().length > 0 ? 'Chèn vào ' + files().length + ' file' : 'Chèn dấu & chữ ký'"
+      icon="pi pi-images"
+      styleClass="min-w-44 justify-center"
+      [disabled]="!canStamp()"
+      [pTooltip]="stampHint()"
+      tooltipPosition="top"
+      (onClick)="startStamp()"
+    />
+  </footer>
+</div>
+
+<app-stamp-output-dialog
+  [(visible)]="showOutput"
+  [(outputFolder)]="outputFolder"
+  [fileCount]="files().length"
+  [stampCount]="stamps().length"
+  [signedCount]="signedCount()"
+  [hasDropped]="hasDropped()"
+  [(signAfter)]="signAfter"
+  (confirmed)="runStamp()"
+/>
+
+<app-stamp-run-dialog [(visible)]="showRun" [request]="runRequest()" [signAfter]="signAfter()" />

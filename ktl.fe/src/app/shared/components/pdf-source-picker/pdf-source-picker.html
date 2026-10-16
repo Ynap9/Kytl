@@ -1,0 +1,72 @@
+<div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
+  <span>{{ title() }} <span class="font-normal text-slate-400">· {{ sources().length }} nguồn</span></span>
+  @if (sources().length > 0 && !disabled()) {
+    <button
+      type="button"
+      class="cursor-pointer rounded border-0 bg-transparent px-1 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
+      (click)="clearSources()"
+    >
+      Bỏ hết
+    </button>
+  }
+</div>
+
+<div
+  class="source-drop"
+  [class.source-drop--over]="dragOver()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave()"
+  (drop)="onDrop($event)"
+>
+  <div class="grid w-full grid-cols-2 gap-2">
+    <p-button label="Chọn file" icon="pi pi-file-pdf" severity="secondary" size="small" [outlined]="true" styleClass="w-full justify-center" [disabled]="disabled()" (onClick)="addFiles()" />
+    <p-button label="Chọn thư mục" icon="pi pi-folder-open" severity="secondary" size="small" [outlined]="true" styleClass="w-full justify-center" [disabled]="disabled()" (onClick)="addFolder()" />
+  </div>
+  @if (droppable()) {
+    <span class="text-xs text-slate-400">hoặc kéo thả một hay nhiều file PDF vào đây</span>
+  }
+  @if (uploading()) {
+    <span class="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
+      <i class="pi pi-spin pi-spinner text-slate-500"></i>
+    </span>
+  }
+</div>
+
+@if (!filePicker.canBrowse) {
+  <input
+    pInputText
+    pSize="small"
+    class="mt-2 w-full"
+    placeholder="Dán đường dẫn file hoặc thư mục (chỉ khi chạy web)"
+    [disabled]="disabled()"
+    [ngModel]="sourceInput()"
+    (ngModelChange)="sourceInput.set($event)"
+    (paste)="onPaste($event)"
+    (keyup.enter)="addSourceInput()"
+    (blur)="addSourceInput()"
+  />
+}
+
+@if (sources().length > 0) {
+  <div class="mt-2 flex max-h-28 flex-col gap-1 overflow-auto">
+    @for (source of sources(); track source) {
+      <div class="flex items-center gap-2 rounded-md bg-[#f5f7fa] px-2 py-1 text-[12.5px]">
+        <i class="pi text-xs" [ngClass]="isFolderSource(source) ? 'pi-folder text-amber-600' : 'pi-file-pdf text-red-600'"></i>
+        <span class="min-w-0 flex-1 truncate text-slate-700" [title]="source">{{ sourceName(source) }}</span>
+        @if (isDropped(source)) {
+          <span class="shrink-0 text-[11px] text-slate-400">kéo thả</span>
+        }
+        @if (!disabled()) {
+          <button
+            type="button"
+            class="cursor-pointer rounded border-0 bg-transparent px-1 text-slate-400 hover:text-red-600"
+            aria-label="Bỏ nguồn"
+            (click)="removeSource(source)"
+          >
+            <i class="pi pi-times text-[10px]"></i>
+          </button>
+        }
+      </div>
+    }
+  </div>
+}

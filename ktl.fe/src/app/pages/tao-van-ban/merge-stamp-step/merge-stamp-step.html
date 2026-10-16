@@ -1,0 +1,31 @@
+<app-stamp-designer
+  [previewUrl]="previewUrl()"
+  [previewLoading]="previewLoading()"
+  [previewWarnings]="previewWarnings()"
+  emptyText="Đang tạo bản xem trước đã nhồi dữ liệu."
+  [(enabled)]="enabled"
+  [(sealImagePath)]="sealImagePath"
+  [(wetSignatureImagePath)]="wetSignatureImagePath"
+  [(stamps)]="stamps"
+  [(mode)]="mode"
+>
+  <div designerNav class="ml-auto flex min-w-0 items-center gap-1">
+    <p-button icon="pi pi-angle-left" severity="secondary" size="small" [text]="true" pTooltip="Dòng trước" ariaLabel="Dòng trước" [disabled]="rowIndex() <= 0" (onClick)="goToRow(-1)" />
+    <p-select
+      [options]="rowOptions()"
+      [ngModel]="rowNumber()"
+      optionLabel="label"
+      optionValue="value"
+      [filter]="true"
+      filterBy="label"
+      size="small"
+      placeholder="Chọn dòng dữ liệu"
+      class="w-80"
+      (onChange)="rowNumber.set($event.value)"
+    />
+    <span class="w-12 text-center text-sm text-slate-500">{{ rowIndex() + 1 }}/{{ rows().length }}</span>
+    <p-button icon="pi pi-angle-right" severity="secondary" size="small" [text]="true" pTooltip="Dòng sau" ariaLabel="Dòng sau" [disabled]="rowIndex() >= rows().length - 1" (onClick)="goToRow(1)" />
+    <span class="mx-1 h-5 w-px bg-[var(--layout-border)]"></span>
+    <p-button icon="pi pi-refresh" severity="secondary" size="small" [text]="true" pTooltip="Tạo lại bản xem trước" ariaLabel="Tạo lại bản xem trước" [loading]="previewLoading()" (onClick)="refreshPreview()" />
+  </div>
+</app-stamp-designer>

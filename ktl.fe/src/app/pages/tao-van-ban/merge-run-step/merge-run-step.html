@@ -1,0 +1,147 @@
+<div class="grid shrink-0 grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-4">
+  <section class="rounded-lg border border-[var(--layout-border)] bg-white p-4">
+    <h2 class="mb-4 text-base font-semibold text-slate-800">Thư mục & tên file xuất</h2>
+    <div class="grid grid-cols-[5.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-3">
+      <label class="text-slate-700">Thư mục:</label>
+      <app-path-picker
+        kind="folder"
+        icon="pi pi-folder"
+        iconClass="bg-amber-50 text-amber-600"
+        label="thư mục lưu"
+        hint="Để trống = lưu cùng thư mục file Excel (bắt buộc chọn nếu Excel được kéo thả)"
+        [disabled]="running()"
+        [(value)]="outputFolder"
+      />
+
+      <label class="text-slate-700">Tên file:</label>
+      <div class="flex min-w-0 flex-wrap items-center gap-1 text-[13px]">
+        <span class="truncate rounded bg-[#f5f7fa] px-2 py-1 text-slate-700">{{ templateName() }}_</span>
+        <span class="rounded bg-[#edf2fb] px-2 py-1 font-medium text-[var(--layout-accent)]">{{ fileNameHeader() ?? 'số dòng Excel' }}</span>
+        <span class="rounded bg-[#f5f7fa] px-2 py-1 text-slate-700">.pdf</span>
+        <span class="ml-1 text-slate-500">· trùng tên tự thêm số dòng</span>
+      </div>
+
+      <label class="text-slate-700">Lưu tại:</label>
+      <span class="text-[13px] text-slate-500">Thư mục con mới <span class="font-medium text-slate-700">{{ templateName() }}_&lt;thời điểm tạo&gt;</span> cho mỗi lần tạo.</span>
+
+      <label class="text-slate-700" for="merge-sign-after">Ký số:</label>
+      <label class="flex cursor-pointer items-center gap-2 text-[13px] text-slate-700">
+        <p-checkbox [binary]="true" [ngModel]="signAfter()" (ngModelChange)="signAfter.set($event)" [disabled]="running()" inputId="merge-sign-after" />
+        Ký số sau khi tạo <span class="text-slate-500">· tạo xong tự chuyển sang Ký số với các file vừa tạo</span>
+      </label>
+    </div>
+  </section>
+
+  <section class="flex flex-col rounded-lg border border-[var(--layout-border)] bg-white p-4">
+    <div class="mb-3 flex items-center justify-between">
+      <h2 class="text-base font-semibold text-slate-800">Tổng quan</h2>
+      <p-button label="Kiểm tra lại" icon="pi pi-refresh" severity="secondary" size="small" [text]="true" [loading]="validating()" [disabled]="running()" (onClick)="validate()" />
+    </div>
+    <div class="grid flex-1 grid-cols-2 gap-2">
+      <div class="flex flex-col justify-center rounded-md bg-[#f5f7fa] px-3 py-2">
+        <span class="text-xl font-semibold text-slate-800">{{ validation()?.totalRows ?? 0 }}</span>
+        <span class="text-xs text-slate-500">File sẽ tạo</span>
+      </div>
+      <div class="flex flex-col justify-center rounded-md bg-[#f5f7fa] px-3 py-2">
+        <span class="text-xl font-semibold text-slate-800">{{ validation()?.mappedFieldCount ?? 0 }}/{{ totalFields() }}</span>
+        <span class="text-xs text-slate-500">Trường đã ghép</span>
+      </div>
+      <div class="flex flex-col justify-center rounded-md bg-[#ebf7ef] px-3 py-2">
+        <span class="text-xl font-semibold text-[#157a42]">{{ doneCount() }}</span>
+        <span class="text-xs text-slate-500">Thành công</span>
+      </div>
+      <div class="flex flex-col justify-center rounded-md px-3 py-2" [ngClass]="failedCount() > 0 ? 'bg-red-50' : 'bg-[#f5f7fa]'">
+        <span class="text-xl font-semibold" [ngClass]="failedCount() > 0 ? 'text-red-600' : 'text-slate-400'">{{ failedCount() }}</span>
+        <span class="text-xs text-slate-500">Lỗi</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+@if (validation(); as v) {
+  @if (v.warnings.length > 0) {
+    <div class="flex shrink-0 flex-col gap-1 rounded-lg bg-[#fdf3e6] px-4 py-2.5">
+      @for (warning of v.warnings; track $index) {
+        <span class="flex gap-1.5 text-[13px] font-medium text-[#b26a00]"><i class="pi pi-exclamation-triangle mt-0.5 text-xs"></i>{{ warning }}</span>
+      }
+    </div>
+  }
+}
+
+<section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--layout-border)] bg-white">
+  <div class="flex shrink-0 items-center gap-3 border-b border-[var(--layout-border)] px-4 py-3">
+    <span class="text-[15px] font-semibold text-slate-800">Tiến trình</span>
+    <div class="min-w-0 flex-1">
+      <p-progressbar [value]="percent()" [showValue]="false" [style]="{ height: '0.375rem' }" />
+    </div>
+    <span class="w-24 text-right text-sm text-slate-600">{{ doneCount() + failedCount() }}/{{ rows().length }} · {{ percent() }}%</span>
+    @if (finished() && resultFolder()) {
+      <p-button label="Mở thư mục kết quả" icon="pi pi-folder-open" severity="secondary" size="small" [outlined]="true" (onClick)="openPath(resultFolder())" />
+    }
+    @if (finished() && signAfter() && signPaths().length > 0) {
+      <p-button [label]="'Ký số ' + signPaths().length + ' file'" icon="pi pi-verified" size="small" (onClick)="goToSign()" />
+    }
+  </div>
+
+  @if (validating() && !validation()) {
+    <div class="flex flex-1 items-center justify-center gap-2 text-slate-500"><i class="pi pi-spin pi-spinner"></i>Đang kiểm tra dữ liệu...</div>
+  } @else if (!validation()) {
+    <div class="flex flex-1 flex-col items-center justify-center gap-2 text-center">
+      <i class="pi pi-exclamation-circle text-3xl text-red-400"></i>
+      <span class="font-semibold text-slate-700">Cấu hình chưa hợp lệ nên chưa tạo file được</span>
+      <span class="text-sm text-slate-500">Xem thông báo lỗi, quay lại bước trước để chỉnh rồi bấm Kiểm tra lại.</span>
+    </div>
+  } @else {
+    <div class="run-grid shrink-0 border-b border-[var(--layout-border)] bg-[#f5f7fa] py-2 text-[13px] font-semibold text-slate-500">
+      <span class="text-center">STT</span>
+      <span class="text-center">Dòng</span>
+      <span>Tên file</span>
+      <span>Trạng thái</span>
+      <span>Ghi chú</span>
+      <span></span>
+    </div>
+    <div class="min-h-0 flex-1 overflow-auto">
+      @for (row of rows(); track row.rowNumber; let i = $index) {
+        <div class="run-grid min-h-10 border-b border-[var(--layout-border)] py-1.5 text-[13px] last:border-b-0">
+          <span class="text-center text-slate-500">{{ i + 1 }}</span>
+          <span class="text-center text-slate-500">{{ row.rowNumber }}</span>
+          <span class="truncate text-slate-800" [title]="row.fileName">{{ row.fileName }}</span>
+          <span>
+            @switch (row.status) {
+              @case ('processing') {
+                <span class="inline-flex items-center gap-1.5 text-slate-500"><i class="pi pi-spin pi-spinner text-xs"></i>{{ statusLabels.processing }}</span>
+              }
+              @case ('done') {
+                <span class="rounded-full bg-[#ddf1e5] px-2.5 py-0.5 text-[12px] font-semibold text-[#157a42]">✓ {{ statusLabels.done }}</span>
+              }
+              @case ('failed') {
+                <span class="rounded-full bg-red-50 px-2.5 py-0.5 text-[12px] font-semibold text-red-600">{{ statusLabels.failed }}</span>
+              }
+              @default {
+                <span class="text-slate-400">{{ statusLabels.idle }}</span>
+              }
+            }
+          </span>
+          <span class="flex min-w-0 flex-col">
+            @if (row.message) {
+              <span class="text-red-600">{{ row.message }}</span>
+            }
+            @for (warning of row.warnings; track $index) {
+              <span class="text-[#b26a00]">{{ warning }}</span>
+            }
+            @if (!row.message && row.warnings.length === 0) {
+              <span class="text-slate-300">—</span>
+            }
+          </span>
+          <span class="flex justify-end">
+            @if (row.outputPath) {
+              <p-button icon="pi pi-external-link" severity="secondary" size="small" [text]="true" pTooltip="Mở file" (onClick)="openPath(row.outputPath)" />
+            }
+          </span>
+        </div>
+      }
+    </div>
+  }
+</section>
+
+<app-merge-result-dialog [(visible)]="showResult" [result]="result()" (openFolder)="openPath($event)" />

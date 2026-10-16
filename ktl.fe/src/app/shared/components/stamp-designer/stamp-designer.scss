@@ -1,0 +1,262 @@
+$accent: var(--layout-accent);
+$line: var(--layout-border);
+
+.checker {
+  background: repeating-conic-gradient(#eef1f5 0 25%, #fff 0 50%) 0 0 / 12px 12px;
+}
+
+.stamp-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  height: 6.5rem;
+  overflow: hidden;
+  border: 1px solid $line;
+  border-radius: 8px;
+
+  &--empty {
+    border: 2px dashed #cbd5e1;
+    background: #f8fafc;
+    cursor: pointer;
+
+    &:hover {
+      border-color: $accent;
+      background: #eff3fa;
+    }
+  }
+
+  &--over {
+    border-color: $accent;
+    box-shadow: 0 0 0 3px rgb(79 70 229 / 15%);
+  }
+
+  &__image {
+    max-width: 88%;
+    max-height: 88%;
+    object-fit: contain;
+  }
+
+  &__actions {
+    position: absolute;
+    right: 0.375rem;
+    bottom: 0.375rem;
+    display: flex;
+    gap: 0.25rem;
+    opacity: 0;
+  }
+
+  &:hover &__actions {
+    opacity: 1;
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.625rem;
+    height: 1.625rem;
+    border: 1px solid $line;
+    border-radius: 9999px;
+    background: #fff;
+    font-size: 0.6875rem;
+    color: #475569;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
+
+    &:hover {
+      color: $accent;
+    }
+
+    &--danger:hover {
+      color: #dc2626;
+    }
+  }
+
+  &__badge {
+    position: absolute;
+    top: 0.375rem;
+    right: 0.375rem;
+    padding: 0 0.375rem;
+    border-radius: 9999px;
+    background: $accent;
+    font-size: 0.6875rem;
+    color: #fff;
+  }
+}
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f5f7fa;
+  }
+
+  &--active {
+    border-color: $accent;
+    background: #eff3fa;
+  }
+
+  &__thumb {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid $line;
+    border-radius: 4px;
+
+    img {
+      max-width: 90%;
+      max-height: 90%;
+    }
+  }
+}
+
+.seg-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid $line;
+  border-radius: 6px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #b9c4d4;
+  }
+
+  &--active {
+    border-color: $accent;
+    background: #eff3fa;
+    box-shadow: inset 0 0 0 1px $accent;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  &__hint {
+    font-size: 0.6875rem;
+    color: #64748b;
+  }
+}
+
+.page-chip {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid $line;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.8125rem;
+  color: #64748b;
+  cursor: pointer;
+
+  &--on {
+    border-color: $accent;
+    background: $accent;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  &--origin {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.stamp-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.stamp-block {
+  position: absolute;
+  outline: 1px dashed rgb(100 116 139 / 70%);
+  cursor: move;
+  touch-action: none;
+
+  &--active {
+    z-index: 2;
+    outline: 2px solid $accent;
+  }
+
+  &--ghost {
+    opacity: 0.45;
+    outline-color: rgb(99 102 241 / 60%);
+  }
+
+  &--own {
+    outline: 2px solid #d97706;
+  }
+
+  &__tag {
+    position: absolute;
+    top: -1.125rem;
+    left: 0;
+    padding: 0 0.3rem;
+    border-radius: 3px;
+    background: #d97706;
+    font-size: 0.625rem;
+    color: #fff;
+  }
+
+  &--excluded {
+    opacity: 0.4;
+    outline: 2px dashed #dc2626;
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: fill;
+    pointer-events: none;
+  }
+
+  &__handle {
+    position: absolute;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid $accent;
+    border-radius: 9999px;
+    background: #fff;
+    touch-action: none;
+
+    &--nw {
+      top: -0.375rem;
+      left: -0.375rem;
+      cursor: nwse-resize;
+    }
+
+    &--ne {
+      top: -0.375rem;
+      right: -0.375rem;
+      cursor: nesw-resize;
+    }
+
+    &--sw {
+      bottom: -0.375rem;
+      left: -0.375rem;
+      cursor: nesw-resize;
+    }
+
+    &--se {
+      bottom: -0.375rem;
+      right: -0.375rem;
+      cursor: nwse-resize;
+    }
+  }
+}

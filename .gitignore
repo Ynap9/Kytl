@@ -1,0 +1,92 @@
+# ===== OS / Editor =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*~
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# ===== .NET (ktl.be) =====
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.cache
+*.pdb
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+_ReSharper*/
+*.DotSettings.user
+BenchmarkDotNet.Artifacts/
+
+# ===== Logs =====
+[Ll]og/
+[Ll]ogs/
+*.log
+
+# ===== SQLite =====
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.machine
+
+# ===== Angular (ktl.fe) =====
+node_modules/
+dist/
+tmp/
+out-tsc/
+.angular/
+.sass-cache/
+connect.lock
+coverage/
+libpeerconnection.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+testem.log
+typings/
+__screenshots__/
+
+# ===== Đóng gói & bộ cài =====
+publish/
+ktl.be/installer/installer-output/
+KTL-v*-Setup.exe
+KTL-v*.zip
+
+# ===== Bộ cài trình điều khiển (tải riêng, không đưa lên git) =====
+ktl.be/installer/drivers/*
+!ktl.be/installer/drivers/.gitkeep
+
+# ===== Bí mật & cấu hình máy =====
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+secrets.json
+appsettings.*.local.json

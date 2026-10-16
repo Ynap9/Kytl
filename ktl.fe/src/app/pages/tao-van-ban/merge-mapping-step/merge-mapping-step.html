@@ -1,0 +1,123 @@
+<div class="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,2fr)] gap-4">
+  <div class="flex min-h-0 flex-col gap-4 overflow-auto">
+    <section class="rounded-[10px] bg-[#eff3fa] p-4">
+      <div class="mb-2 flex items-center gap-2">
+        <i class="pi pi-tag text-lg text-[var(--layout-accent)]"></i>
+        <span class="text-base font-semibold text-slate-800">Cột đặt tên file</span>
+        <span class="rounded-full bg-[var(--layout-accent)] px-2 py-px text-[10.5px] font-semibold text-white">NÊN CHỌN</span>
+      </div>
+      <p-select
+        [options]="headers()"
+        [ngModel]="fileNameColumnNumber()"
+        optionLabel="name"
+        optionValue="columnNumber"
+        [filter]="true"
+        filterBy="name"
+        [showClear]="true"
+        placeholder="Theo số dòng Excel"
+        class="w-full"
+        (onChange)="fileNameColumnNumber.set($event.value ?? null)"
+      />
+      <p class="mt-2 text-[12.5px] text-slate-500">
+        Mỗi file PDF đặt tên theo giá trị của cột này. Nên chọn cột không trùng như mã người học, số hiệu.
+      </p>
+      <p class="mt-2 truncate text-[12.5px] text-slate-600" [title]="fileNameExample()">
+        Ví dụ: <span class="font-semibold text-slate-800">{{ fileNameExample() }}</span>
+      </p>
+    </section>
+
+    <section class="rounded-lg border border-[var(--layout-border)] bg-white p-4">
+      <h2 class="mb-3 text-base font-semibold text-slate-800">Kiểm tra dữ liệu</h2>
+      <p-button
+        label="Chạy kiểm tra"
+        icon="pi pi-check-square"
+        severity="secondary"
+        [outlined]="true"
+        styleClass="w-full justify-center"
+        [loading]="validating()"
+        (onClick)="validate.emit()"
+      />
+
+      @if (validation(); as v) {
+        <div
+          class="mt-3 grid grid-cols-[auto_1fr] gap-x-4 rounded-md px-3 py-2.5 font-mono text-[12.5px] leading-6"
+          [ngClass]="v.warnings.length === 0 && v.warningRowCount === 0 ? 'bg-[#eff3fa] text-slate-700' : 'bg-amber-50 text-amber-800'"
+        >
+          <div class="col-span-2 font-semibold" [class.text-green-700]="v.warnings.length === 0 && v.warningRowCount === 0">
+            {{ v.warnings.length === 0 && v.warningRowCount === 0 ? '✓ Hợp lệ' : '⚠ Hợp lệ, có cảnh báo' }}
+          </div>
+          <span>Dòng dữ liệu</span><span>{{ v.totalRows }}</span>
+          <span>Trường đã ghép</span><span>{{ v.mappedFieldCount }}/{{ v.mappedFieldCount + v.unmappedFields.length }}</span>
+          <span>Dòng cảnh báo</span><span>{{ v.warningRowCount }}</span>
+        </div>
+        @for (warning of v.warnings; track $index) {
+          <p class="mt-2 flex gap-1.5 text-[12.5px] text-amber-700">
+            <i class="pi pi-exclamation-triangle mt-0.5 text-[11px]"></i><span>{{ warning }}</span>
+          </p>
+        }
+      } @else {
+        <p class="mt-3 text-[12.5px] text-slate-500">Chưa kiểm tra. Bấm Tiếp theo cũng tự chạy kiểm tra.</p>
+      }
+    </section>
+  </div>
+
+  <div class="flex min-h-0 flex-col gap-2">
+    <div class="flex items-center justify-between gap-3 px-0.5">
+      <div class="flex items-center gap-2">
+        <span class="text-base font-semibold text-slate-800">Ghép trường trong mẫu ↔ cột Excel</span>
+        <span class="font-semibold" [ngClass]="allMapped() ? 'text-[#157a42]' : 'text-[#d98300]'">
+          {{ mappedCount() }}/{{ fields().length }}
+        </span>
+      </div>
+      <div class="flex items-center gap-1">
+        <p-button label="Ghép tự động" icon="pi pi-sync" severity="secondary" size="small" [outlined]="true" [loading]="remapping()" (onClick)="remap()" />
+        <p-button label="Xoá ghép" severity="secondary" size="small" [text]="true" [disabled]="mappedCount() === 0" (onClick)="clearMapping()" />
+      </div>
+    </div>
+
+    <section class="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--layout-border)] bg-white">
+      <div class="mapping-grid shrink-0 border-b border-[var(--layout-border)] bg-[#f5f7fa] py-2.5 text-[13px] font-semibold text-slate-500">
+        <span></span>
+        <span class="pl-3.5">Trường trong mẫu</span>
+        <span>Cột Excel</span>
+        <span>Trạng thái</span>
+      </div>
+
+      <div class="min-h-0 flex-1 overflow-auto">
+        @for (field of fields(); track field.fieldName; let i = $index) {
+          @let status = fieldStatus(field);
+          <div class="mapping-grid min-h-11 border-b border-[var(--layout-border)] last:border-b-0">
+            <span class="self-stretch" [ngClass]="status.barClass"></span>
+            <span class="truncate pl-3.5 font-mono text-sm text-[var(--layout-accent)]" [title]="field.fieldName">
+              {{ '{' }}{{ field.fieldName }}{{ '}' }}
+            </span>
+            <p-select
+              [options]="headers()"
+              [ngModel]="field.columnNumber"
+              optionLabel="name"
+              optionValue="columnNumber"
+              [filter]="true"
+              filterBy="name"
+              [showClear]="true"
+              placeholder="Chọn cột Excel…"
+              appendTo="body"
+              size="small"
+              class="my-1.5 w-full"
+              (onChange)="onColumnChange(i, $event.value)"
+            >
+              <ng-template let-header pTemplate="item">
+                <div class="flex w-full items-center justify-between gap-3">
+                  <span>{{ header.name }}</span>
+                  <span class="text-xs text-slate-400">Cột {{ header.columnNumber }}</span>
+                </div>
+              </ng-template>
+            </p-select>
+            <span class="justify-self-start whitespace-nowrap rounded-full px-2.5 py-0.5 text-[12.5px] font-semibold" [ngClass]="status.pillClass">
+              {{ status.label }}
+            </span>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</div>
