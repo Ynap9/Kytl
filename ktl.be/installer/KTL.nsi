@@ -6,7 +6,7 @@
 !include "FileFunc.nsh"
 
 !define APP_NAME      "KTL"
-!define APP_VERSION   "1.0.0"
+!define APP_VERSION   "1.1.0"
 !define APP_PUBLISHER "SaoMaiSolutions"
 !define APP_EXE       "KTL.exe"
 
@@ -34,7 +34,7 @@ RequestExecutionLevel admin
 SetCompressor /SOLID lzma
 BrandingText "${APP_PUBLISHER} - ${APP_NAME} ${APP_VERSION}"
 
-VIProductVersion "1.0.0.0"
+VIProductVersion "1.1.0.0"
 VIAddVersionKey "ProductName"     "${APP_NAME}"
 VIAddVersionKey "ProductVersion"  "${APP_VERSION}"
 VIAddVersionKey "FileVersion"     "${APP_VERSION}.0"

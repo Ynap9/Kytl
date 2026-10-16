@@ -19,13 +19,11 @@ import {
   ISignResult
 } from '../../../models/sign.models';
 import { IBaseResponse } from '../../../shared/models/request-paging.base.models';
-import { SIGN_DEFAULT_CONFIG } from '../../../shared/constants/sign.constants';
-import { SignDialog } from './sign-dialog/sign-dialog';
 import { SignResultDialog } from './sign-result-dialog/sign-result-dialog';
 
 @Component({
   selector: 'app-sign-step',
-  imports: [...SharedImports, ProgressBarModule, TableModule, TagModule, SignDialog, SignResultDialog],
+  imports: [...SharedImports, ProgressBarModule, TableModule, TagModule, SignResultDialog],
   templateUrl: './sign-step.html',
   styleUrl: './sign-step.scss'
 })
@@ -37,9 +35,7 @@ export class SignStep extends BaseComponent implements OnDestroy {
   thumbprint = input<string>('');
   certName = input<string>('');
   sources = input<string[]>([]);
-  config = input<ISignConfig | null>(null);
-  reason = input<string>('');
-  location = input<string>('');
+  config = input.required<ISignConfig>();
 
   private checkedSources: string[] = [];
 
@@ -70,7 +66,6 @@ export class SignStep extends BaseComponent implements OnDestroy {
   positionCheck = signal<ISignPositionCheck | null>(null);
 
   fileRows = signal<ISignFileRow[]>([]);
-  showSignDialog = signal<boolean>(false);
   showResultDialog = signal<boolean>(false);
   signResult = signal<ISignResult | null>(null);
 
@@ -128,16 +123,16 @@ export class SignStep extends BaseComponent implements OnDestroy {
   }
 
   private checkPositions(sources: string[]): void {
-    const config = this.config() ?? SIGN_DEFAULT_CONFIG;
+    const config = this.config();
 
     this.positionChecking.set(true);
     this.positionCheck.set(null);
     this.signService
       .checkPositions({
         sourcePaths: sources,
-        useCustomPosition: config.useCustomPosition,
-        positions: config.positions ?? null,
-        fileOverrides: config.fileOverrides ?? null
+        showSignature: config.showSignature,
+        signaturePosition: config.signaturePosition,
+        fileOverrides: config.fileOverrides
       })
       .subscribe({
         next: (res) => {
@@ -155,13 +150,13 @@ export class SignStep extends BaseComponent implements OnDestroy {
       });
   }
 
-  onOpenSignDialog(): void {
+  onSign(): void {
     if (!this.canSign()) {
       this.messageWarning('Không có file PDF nào để ký. Vui lòng kiểm tra lại.');
       return;
     }
     if (this.certState.verifiedCert()?.thumbprint === this.thumbprint()) {
-      this.showSignDialog.set(true);
+      this.startSign();
       return;
     }
 
@@ -172,7 +167,7 @@ export class SignStep extends BaseComponent implements OnDestroy {
         if (!this.isResponseSucceed(res)) return;
         if (res.data?.valid) {
           this.certState.verifiedCert.set(res.data);
-          this.showSignDialog.set(true);
+          this.startSign();
         } else {
           this.certState.verifiedCert.set(null);
           this.messageError(res.data?.reason || 'Chứng thư số chưa sẵn sàng để ký. Vui lòng kiểm tra lại token/PIN.');
@@ -185,26 +180,14 @@ export class SignStep extends BaseComponent implements OnDestroy {
     });
   }
 
-  onStartSign(payload: { reason: string; location: string }): void {
+  private startSign(): void {
     const sources = this.sources();
     if (sources.length === 0 || !this.thumbprint()) return;
 
-    const config = this.config() ?? SIGN_DEFAULT_CONFIG;
-
     const req: ISignRequest = {
+      ...this.config(),
       thumbprint: this.thumbprint(),
-      sourcePaths: sources,
-      reason: payload.reason || undefined,
-      location: payload.location || undefined,
-      useCustomPosition: config.useCustomPosition,
-      allowOverlapContent: config.allowOverlapContent,
-      positions: config.positions ?? null,
-      fileOverrides: config.fileOverrides ?? null,
-      fontFamily: this.config()?.fontFamily ?? null,
-      fontSize: this.config()?.fontSize ?? null,
-      textColor: this.config()?.textColor ?? null,
-      sealImagePath: this.config()?.sealImagePath ?? null,
-      wetSignatureImagePath: this.config()?.wetSignatureImagePath ?? null
+      sourcePaths: sources
     };
 
     this.sub?.unsubscribe();

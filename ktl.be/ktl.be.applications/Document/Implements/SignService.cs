@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
 using ktl.be.applications.Base;
 using ktl.be.infrastructure.external.Documents.Dtos;
+using ktl.be.applications.Document.Dtos.DocumentMerge;
 using ktl.be.applications.Document.Dtos.Sign;
+using ktl.be.applications.Document.Dtos.Stamp;
 using ktl.be.applications.Document.Interfaces;
 using ktl.be.shared.Constants.Documents;
 using ktl.be.shared.Requests;
@@ -23,6 +25,7 @@ namespace ktl.be.applications.Document.Implements
         private readonly ISignatureVerifier _signatureVerifier;
         private readonly IPdfPageInspector _pdfPageInspector;
         private readonly ISignaturePlacementResolver _placementResolver;
+        private readonly IStampPlanner _stampPlanner;
 
         private const string PdfExtension = ".pdf";
         private const string TargetTypeManifest = "manifest";
@@ -32,7 +35,8 @@ namespace ktl.be.applications.Document.Implements
         public SignService(ILogger<BaseService> logger,
             ICertificateProvider certificateProvider, ISigningKey signingKey, IPdfSigner pdfSigner,
             ISignatureVerifier signatureVerifier,
-            IPdfPageInspector pdfPageInspector, ISignaturePlacementResolver placementResolver)
+            IPdfPageInspector pdfPageInspector, ISignaturePlacementResolver placementResolver,
+            IStampPlanner stampPlanner)
             : base(logger)
         {
             _certificateProvider = certificateProvider;
@@ -41,6 +45,7 @@ namespace ktl.be.applications.Document.Implements
             _signatureVerifier = signatureVerifier;
             _pdfPageInspector = pdfPageInspector;
             _placementResolver = placementResolver;
+            _stampPlanner = stampPlanner;
         }
 
         public List<SignCertDto> GetCertificates(SignCertQueryDto query)
@@ -206,27 +211,27 @@ namespace ktl.be.applications.Document.Implements
                     tokenCheck.Reason ?? "Chứng thư số không dùng để ký được.");
             }
 
-            List<PdfSignPlacementDto>? placements = null;
-            if (request.UseCustomPosition)
+            if (!string.IsNullOrWhiteSpace(request.WetSignatureColor)
+                && !Regex.IsMatch(request.WetSignatureColor, StampImageConstants.ColorPattern))
             {
-                if ((request.Positions == null || request.Positions.Count == 0)
-                    && (request.FileOverrides == null || request.FileOverrides.Count == 0))
-                {
-                    throw new UserFriendlyException(ErrorCodes.SignPositionInvalid,
-                        "Đã chọn tự đặt vị trí chữ ký nhưng không có tọa độ gửi kèm.");
-                }
-
-                placements = NormalizePlacements(request.Positions ?? new List<SignPositionDto>());
+                throw new UserFriendlyException(ErrorCodes.BadRequest,
+                    "Màu mực chữ ký tươi không hợp lệ, cần dạng #RRGGBB.");
             }
 
-            var overrides = new Dictionary<string, List<PdfSignPlacementDto>>(StringComparer.OrdinalIgnoreCase);
-            if (request.UseCustomPosition && request.FileOverrides != null)
+            var sharedLayout = new SignLayout
             {
-                foreach (var file in request.FileOverrides)
+                SignaturePlacement = NormalizePlacement(request.SignaturePosition),
+                Rules = _stampPlanner.BuildRules(request.SealImagePath, request.WetSignatureImagePath, request.Stamps)
+            };
+
+            var overrides = new Dictionary<string, SignLayout>(StringComparer.OrdinalIgnoreCase);
+            foreach (var file in request.FileOverrides.Where(f => !string.IsNullOrWhiteSpace(f.Path)))
+            {
+                overrides[Path.GetFullPath(file.Path)] = new SignLayout
                 {
-                    if (string.IsNullOrWhiteSpace(file.Path)) continue;
-                    overrides[Path.GetFullPath(file.Path)] = NormalizePlacements(file.Positions);
-                }
+                    SignaturePlacement = NormalizePlacement(file.SignaturePosition),
+                    Rules = _stampPlanner.BuildRules(request.SealImagePath, request.WetSignatureImagePath, file.Stamps)
+                };
             }
 
             var signOptions = new PdfSignOptionsDto
@@ -234,8 +239,8 @@ namespace ktl.be.applications.Document.Implements
                 Thumbprint = request.Thumbprint,
                 Reason = request.Reason,
                 Location = request.Location,
-                Placements = placements,
-                AllowOverlapContent = request.AllowOverlapContent,
+                ShowSignature = request.ShowSignature,
+                EmbedSignatureInImage = request.EmbedSignatureInImage,
                 FontFamily = SigningConstants.AppearanceFontFamilies.Contains(request.FontFamily)
                     ? request.FontFamily!
                     : SigningConstants.AppearanceFontFamily,
@@ -245,7 +250,14 @@ namespace ktl.be.applications.Document.Implements
                     : SigningConstants.AppearanceFontSize,
                 TextColor = string.IsNullOrWhiteSpace(request.TextColor)
                     ? SigningConstants.AppearanceTextColor
-                    : request.TextColor
+                    : request.TextColor,
+                SealDarkness = Math.Clamp(request.SealDarkness, StampImageConstants.DarknessMin,
+                    StampImageConstants.DarknessMax),
+                WetSignatureDarkness = Math.Clamp(request.WetSignatureDarkness, StampImageConstants.DarknessMin,
+                    StampImageConstants.DarknessMax),
+                WetSignatureStroke = Math.Clamp(request.WetSignatureStroke, StampImageConstants.StrokeMin,
+                    StampImageConstants.StrokeMax),
+                WetSignatureColor = string.IsNullOrWhiteSpace(request.WetSignatureColor) ? null : request.WetSignatureColor
             };
 
             foreach (var (path, isSeal) in new[] { (request.SealImagePath, true), (request.WetSignatureImagePath, false) })
@@ -253,10 +265,10 @@ namespace ktl.be.applications.Document.Implements
                 if (string.IsNullOrWhiteSpace(path)) continue;
 
                 var ext = Path.GetExtension(path).ToLowerInvariant();
-                if (!File.Exists(path) || !SignTemplateConstants.AllowedImageExtensions.Contains(ext)
-                    || new FileInfo(path).Length > SignTemplateConstants.MaxImageBytes)
+                if (!File.Exists(path) || !StampImageConstants.AllowedExtensions.Contains(ext)
+                    || new FileInfo(path).Length > StampImageConstants.MaxBytes)
                 {
-                    throw new UserFriendlyException(ErrorCodes.SignTemplateImageInvalid,
+                    throw new UserFriendlyException(ErrorCodes.StampImageInvalid,
                         $"Ảnh {(isSeal ? "dấu đỏ" : "chữ ký tươi")} không hợp lệ hoặc không tồn tại: {path}");
                 }
 
@@ -276,13 +288,13 @@ namespace ktl.be.applications.Document.Implements
             var outputFolder = folders.Count == 1 ? folders[0] : string.Empty;
             var signedStamp = GetVietnamTime().ToString(SigningConstants.SignedFileTimeFormat);
 
-            return RunSignAsync(request.Thumbprint, signOptions, overrides, fileList, outputFolder, signedStamp,
-                cancellationToken);
+            return RunSignAsync(request.Thumbprint, signOptions, sharedLayout, overrides, fileList, outputFolder,
+                signedStamp, cancellationToken);
         }
 
         private async IAsyncEnumerable<SignProgressDto> RunSignAsync(string thumbprint, PdfSignOptionsDto signOptions,
-            Dictionary<string, List<PdfSignPlacementDto>> overrides, SignFileListDto fileList, string outputFolder,
-            string signedStamp, [EnumeratorCancellation] CancellationToken cancellationToken)
+            SignLayout sharedLayout, Dictionary<string, SignLayout> overrides, SignFileListDto fileList,
+            string outputFolder, string signedStamp, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             var total = fileList.Files.Count;
             var channel = Channel.CreateUnbounded<SignProgressDto>();
@@ -346,21 +358,9 @@ namespace ktl.be.applications.Document.Implements
 
                         try
                         {
-                            var fileOptions = overrides.TryGetValue(item.FullPath, out var own)
-                                ? new PdfSignOptionsDto
-                                {
-                                    Thumbprint = signOptions.Thumbprint,
-                                    Reason = signOptions.Reason,
-                                    Location = signOptions.Location,
-                                    Placements = own,
-                                    AllowOverlapContent = signOptions.AllowOverlapContent,
-                                    FontFamily = signOptions.FontFamily,
-                                    FontSize = signOptions.FontSize,
-                                    TextColor = signOptions.TextColor,
-                                    SealImage = signOptions.SealImage,
-                                    WetSignatureImage = signOptions.WetSignatureImage
-                                }
-                                : signOptions;
+                            var layout = overrides.TryGetValue(item.FullPath, out var own) ? own : sharedLayout;
+                            var pageCount = _pdfPageInspector.Read(item.FullPath).Pages.Count;
+                            var fileOptions = BuildFileOptions(signOptions, layout, pageCount);
 
                             await _pdfSigner.SignAsync(item.FullPath, outputPath, fileOptions, ct);
 
@@ -474,36 +474,32 @@ namespace ktl.be.applications.Document.Implements
             }
         }
 
+
         public SignPositionCheckResultDto CheckPositions(SignPositionCheckRequestDto request)
         {
             _logger.LogInformation($"{nameof(CheckPositions)}, sources={request.SourcePaths?.Count ?? 0}");
 
             var fileList = ResolvePdfFiles(request.SourcePaths);
-            var shared = request.UseCustomPosition
-                ? NormalizePlacements(request.Positions ?? new List<SignPositionDto>())
-                : new List<PdfSignPlacementDto>();
+            var shared = request.ShowSignature ? NormalizePlacement(request.SignaturePosition) : null;
 
-            var overrides = new Dictionary<string, List<PdfSignPlacementDto>>(StringComparer.OrdinalIgnoreCase);
-            if (request.UseCustomPosition && request.FileOverrides != null)
+            var overrides = new Dictionary<string, PdfSignPlacementDto?>(StringComparer.OrdinalIgnoreCase);
+            foreach (var file in request.FileOverrides.Where(f => !string.IsNullOrWhiteSpace(f.Path)))
             {
-                foreach (var file in request.FileOverrides)
-                {
-                    if (string.IsNullOrWhiteSpace(file.Path)) continue;
-                    overrides[Path.GetFullPath(file.Path)] = NormalizePlacements(file.Positions);
-                }
+                overrides[Path.GetFullPath(file.Path)] =
+                    request.ShowSignature ? NormalizePlacement(file.SignaturePosition) : null;
             }
 
             var result = new SignPositionCheckResultDto { TotalFiles = fileList.Files.Count };
             foreach (var item in fileList.Files)
             {
-                var placements = overrides.TryGetValue(item.FullPath, out var own) ? own : shared;
+                var placement = overrides.TryGetValue(item.FullPath, out var own) ? own : shared;
                 var metrics = _pdfPageInspector.Read(item.FullPath);
                 var fileResult = new SignPositionFileDto
                 {
                     FileName = item.Name,
                     FullPath = item.FullPath,
                     PageCount = metrics.Pages.Count,
-                    BlockCount = placements.Count > 0 ? placements.Count : 1,
+                    BlockCount = request.ShowSignature ? 1 : 0,
                     Readable = metrics.Readable
                 };
 
@@ -515,13 +511,12 @@ namespace ktl.be.applications.Document.Implements
                     continue;
                 }
 
-                for (var i = 0; i < placements.Count; i++)
+                if (placement != null)
                 {
-                    var placement = placements[i];
                     var pageIndex = Math.Clamp(placement.PageNumber - 1, 0, metrics.Pages.Count - 1);
                     if (placement.PageNumber > metrics.Pages.Count)
                     {
-                        fileResult.Issues.Add($"Khối {i + 1} đặt ở trang {placement.PageNumber} nhưng file chỉ " +
+                        fileResult.Issues.Add($"Khối chữ ký số đặt ở trang {placement.PageNumber} nhưng file chỉ " +
                             $"có {metrics.Pages.Count} trang, sẽ đóng vào trang {metrics.Pages.Count}.");
                     }
 
@@ -538,7 +533,7 @@ namespace ktl.be.applications.Document.Implements
                     if (Math.Abs(actual.X - requested.X) > 0.5 || Math.Abs(actual.Y - requested.Y) > 0.5
                         || Math.Abs(actual.Width - requested.Width) > 0.5 || Math.Abs(actual.Height - requested.Height) > 0.5)
                     {
-                        fileResult.Issues.Add($"Khối {i + 1} tràn ra ngoài trang {pageIndex + 1}, sẽ được dịch " +
+                        fileResult.Issues.Add($"Khối chữ ký số tràn ra ngoài trang {pageIndex + 1}, sẽ được dịch " +
                             "vào trong cho khỏi mất chữ ký.");
                     }
                 }
@@ -552,29 +547,71 @@ namespace ktl.be.applications.Document.Implements
             return result;
         }
 
-        private static List<PdfSignPlacementDto> NormalizePlacements(List<SignPositionDto> positions)
+        private PdfSignOptionsDto BuildFileOptions(PdfSignOptionsDto signOptions, SignLayout layout, int pageCount)
         {
-            var result = new List<PdfSignPlacementDto>();
-            foreach (var position in positions)
-            {
-                var width = position.WidthRatio > 0
-                    ? Math.Min(position.WidthRatio, 1)
-                    : SigningConstants.AppearanceWidth / SigningConstants.AppearanceReferencePageWidth;
-                var height = position.HeightRatio > 0
-                    ? Math.Min(position.HeightRatio, 1)
-                    : SigningConstants.AppearanceHeight / SigningConstants.AppearanceReferencePageHeight;
+            var stampPlacements = layout.Rules
+                .SelectMany(rule => _stampPlanner.Plan(new[] { rule }, pageCount).Stamps
+                    .Select(stamp => new PdfSignPlacementDto
+                    {
+                        PageNumber = stamp.PageNumber,
+                        XRatio = stamp.XRatio,
+                        YRatio = stamp.YRatio,
+                        WidthRatio = stamp.WidthRatio,
+                        HeightRatio = stamp.HeightRatio,
+                        Kind = rule.Kind == MergeStampKind.Seal
+                            ? PdfSignPlacementKind.Seal
+                            : PdfSignPlacementKind.WetSignature
+                    }))
+                .ToList();
 
-                result.Add(new PdfSignPlacementDto
-                {
-                    PageNumber = Math.Max(position.PageNumber, 1),
-                    XRatio = Math.Clamp(position.XRatio, 0, 1 - width),
-                    YRatio = Math.Clamp(position.YRatio, 0, 1 - height),
-                    WidthRatio = width,
-                    HeightRatio = height,
-                    Kind = Enum.IsDefined(position.Kind) ? position.Kind : PdfSignPlacementKind.Signature
-                });
-            }
-            return result;
+            return new PdfSignOptionsDto
+            {
+                Thumbprint = signOptions.Thumbprint,
+                Reason = signOptions.Reason,
+                Location = signOptions.Location,
+                ShowSignature = signOptions.ShowSignature,
+                SignaturePlacement = layout.SignaturePlacement,
+                StampPlacements = stampPlacements,
+                EmbedSignatureInImage = signOptions.EmbedSignatureInImage,
+                FontFamily = signOptions.FontFamily,
+                FontSize = signOptions.FontSize,
+                TextColor = signOptions.TextColor,
+                SealImage = signOptions.SealImage,
+                WetSignatureImage = signOptions.WetSignatureImage,
+                SealDarkness = signOptions.SealDarkness,
+                WetSignatureDarkness = signOptions.WetSignatureDarkness,
+                WetSignatureStroke = signOptions.WetSignatureStroke,
+                WetSignatureColor = signOptions.WetSignatureColor
+            };
+        }
+
+        private static PdfSignPlacementDto? NormalizePlacement(SignPositionDto? position)
+        {
+            if (position == null) return null;
+
+            var width = position.WidthRatio > 0
+                ? Math.Min(position.WidthRatio, 1)
+                : SigningConstants.AppearanceWidth / SigningConstants.AppearanceReferencePageWidth;
+            var height = position.HeightRatio > 0
+                ? Math.Min(position.HeightRatio, 1)
+                : SigningConstants.AppearanceHeight / SigningConstants.AppearanceReferencePageHeight;
+
+            return new PdfSignPlacementDto
+            {
+                PageNumber = Math.Max(position.PageNumber, 1),
+                XRatio = Math.Clamp(position.XRatio, 0, 1 - width),
+                YRatio = Math.Clamp(position.YRatio, 0, 1 - height),
+                WidthRatio = width,
+                HeightRatio = height,
+                Kind = PdfSignPlacementKind.Signature
+            };
+        }
+
+        private sealed class SignLayout
+        {
+            public PdfSignPlacementDto? SignaturePlacement { get; init; }
+
+            public List<StampRuleDto> Rules { get; init; } = new();
         }
     }
 }

@@ -5,6 +5,7 @@ using ktl.be.applications.Document.Dtos.Stamp;
 using ktl.be.applications.Document.Interfaces;
 using ktl.be.infrastructure.external.Documents.Dtos;
 using ktl.be.infrastructure.external.Documents.Interfaces;
+using ktl.be.shared.Constants;
 using ktl.be.shared.Constants.Documents;
 using ktl.be.shared.Requests;
 using ktl.be.shared.Requests.AppException;
@@ -32,7 +33,7 @@ namespace ktl.be.applications.Document.Implements
         private static readonly Regex WordRegex = new(@"[\p{L}\p{N}]+", RegexOptions.Compiled);
         private static readonly Regex WhitespaceRegex = new(@"\s+", RegexOptions.Compiled);
 
-        private static string PreviewFolder => Path.Combine(Path.GetTempPath(), SignTemplateConstants.AppDataFolderName,
+        private static string PreviewFolder => Path.Combine(Path.GetTempPath(), AppConstants.AppFolderName,
             DocumentMergeConstants.TempFolderName, DocumentMergeConstants.PreviewFolderName);
 
         public DocumentMergeService(ILogger<BaseService> logger,
@@ -184,6 +185,26 @@ namespace ktl.be.applications.Document.Implements
             return new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
+        public (Stream Stream, string ContentType) OpenImage(string path)
+        {
+            _logger.LogInformation($"{nameof(OpenImage)}, path={path}");
+
+            if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+            {
+                throw new UserFriendlyException(ErrorCodes.StampImageInvalid, $"Không tìm thấy file ảnh: {path}");
+            }
+
+            var ext = Path.GetExtension(path).ToLowerInvariant();
+            if (!StampImageConstants.AllowedExtensions.Contains(ext))
+            {
+                throw new UserFriendlyException(ErrorCodes.StampImageInvalid, $"Định dạng ảnh {ext} không được hỗ trợ.");
+            }
+
+            var contentType = ext == ".png" ? "image/png" : "image/jpeg";
+
+            return (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read), contentType);
+        }
+
         public IAsyncEnumerable<MergeProgressDto> MergeAsync(MergeRequestDto request,
             CancellationToken cancellationToken = default)
         {
@@ -222,7 +243,7 @@ namespace ktl.be.applications.Document.Implements
         {
             var rows = context.Data.Rows;
             var total = rows.Count;
-            var workFolder = Path.Combine(Path.GetTempPath(), SignTemplateConstants.AppDataFolderName,
+            var workFolder = Path.Combine(Path.GetTempPath(), AppConstants.AppFolderName,
                 DocumentMergeConstants.TempFolderName, Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(outputFolder);
             Directory.CreateDirectory(workFolder);

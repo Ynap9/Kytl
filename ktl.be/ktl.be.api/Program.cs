@@ -1,13 +1,9 @@
 using Asp.Versioning;
-using ktl.be.applications.Base;
 using ktl.be.applications.Document.Implements;
 using ktl.be.applications.Document.Interfaces;
-using ktl.be.infrastructure.data.Persistence;
 using ktl.be.infrastructure.external.Documents.Implements;
 using ktl.be.infrastructure.external.Documents.Interfaces;
 using ktl.be.shared.Constants;
-using ktl.be.shared.Constants.Documents;
-using Microsoft.EntityFrameworkCore;
 using NLog;
 using NLog.Web;
 using System.Globalization;
@@ -58,7 +54,6 @@ namespace ktl.be.api
             });
 
             builder.Services.AddScoped<ISignService, SignService>();
-            builder.Services.AddScoped<ISignTemplateService, SignTemplateService>();
             builder.Services.AddScoped<IPdfSignatureReader, PdfSignatureReader>();
             builder.Services.AddScoped<ISignatureVerifier, SignatureVerifier>();
             builder.Services.AddScoped<ICertificateProvider, CertificateProvider>();
@@ -74,13 +69,6 @@ namespace ktl.be.api
             builder.Services.AddScoped<IPdfImageStamper, PdfImageStamper>();
             builder.Services.AddScoped<IFileUploadService, FileUploadService>();
             builder.Services.AddScoped<IStampPlanner, StampPlanner>();
-            builder.Services.AddScoped<IPdfStampService, PdfStampService>();
-
-            builder.Services.AddAutoMapper(cfg => { }, typeof(MappingProfile));
-
-            var signTemplatesReset = SignTemplateMachineBinding.Ensure();
-            builder.Services.AddDbContext<SignTemplateDbContext>(options =>
-                options.UseSqlite($"Data Source={SignTemplateConstants.DatabasePath}"));
 
             builder.Services.AddControllers()
                 .AddApplicationPart(typeof(Program).Assembly);
@@ -105,15 +93,6 @@ namespace ktl.be.api
             });
 
             var app = builder.Build();
-
-            using (var scope = app.Services.CreateScope())
-            {
-                scope.ServiceProvider.GetRequiredService<SignTemplateDbContext>().Database.Migrate();
-            }
-            if (signTemplatesReset)
-            {
-                app.Logger.LogWarning("Dữ liệu template chữ ký thuộc máy khác nên đã được xoá và khởi tạo lại.");
-            }
 
             if (app.Environment.IsDevelopment())
             {

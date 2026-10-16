@@ -208,10 +208,10 @@ namespace ktl.be.applications.Document.Implements
             if (string.IsNullOrWhiteSpace(path)) return null;
 
             var ext = Path.GetExtension(path).ToLowerInvariant();
-            if (!File.Exists(path) || !SignTemplateConstants.AllowedImageExtensions.Contains(ext)
-                || new FileInfo(path).Length > SignTemplateConstants.MaxImageBytes)
+            if (!File.Exists(path) || !StampImageConstants.AllowedExtensions.Contains(ext)
+                || new FileInfo(path).Length > StampImageConstants.MaxBytes)
             {
-                throw new UserFriendlyException(ErrorCodes.SignTemplateImageInvalid,
+                throw new UserFriendlyException(ErrorCodes.StampImageInvalid,
                     $"Ảnh {GetStampLabel(kind)} không hợp lệ hoặc không tồn tại: {path}");
             }
 

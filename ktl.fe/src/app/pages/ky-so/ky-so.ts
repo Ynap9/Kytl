@@ -8,33 +8,26 @@ import { Breadcrumb } from '../../shared/components/breadcrumb/breadcrumb';
 import { PdfSourcePicker } from '../../shared/components/pdf-source-picker/pdf-source-picker';
 import { SignService } from '../../services/sign.service';
 import { SignHandoffService } from '../../services/sign-handoff.service';
-import { SignTemplateService } from '../../services/sign-template.service';
 import { SignCertStateService } from '../../services/sign-cert-state.service';
+import { SignConfigStateService } from '../../services/sign-config-state.service';
 import { ISignCert, ISignConfig } from '../../models/sign.models';
-import { IViewSignTemplate } from '../../models/sign-template.models';
-import { ESignTemplatePositionKind } from '../../shared/constants/sign.constants';
 import { SignStep } from './sign-step/sign-step';
-
-const TEMPLATE_LIST_URL = '/cau-hinh/template-chu-ky';
+import { SignConfigDialog } from './sign-config-dialog/sign-config-dialog';
 
 @Component({
   selector: 'app-ky-so',
-  imports: [...SharedImports, TagModule, Breadcrumb, PdfSourcePicker, SignStep],
+  imports: [...SharedImports, TagModule, Breadcrumb, PdfSourcePicker, SignStep, SignConfigDialog],
   templateUrl: './ky-so.html',
   styleUrl: './ky-so.scss'
 })
 export class KySo extends BaseComponent implements OnInit {
   private signService = inject(SignService);
-  private signTemplateService = inject(SignTemplateService);
   private certState = inject(SignCertStateService);
   private signHandoff = inject(SignHandoffService);
+  private configState = inject(SignConfigStateService);
 
   home: MenuItem = { icon: 'pi pi-home', routerLink: '/' };
   breadcrumbItems: MenuItem[] = [{ label: 'Ký số' }];
-
-  templates = signal<IViewSignTemplate[]>([]);
-  templateLoading = signal<boolean>(false);
-  templateId = signal<number | null>(null);
 
   certs = signal<ISignCert[]>([]);
   certLoading = signal<boolean>(false);
@@ -42,82 +35,43 @@ export class KySo extends BaseComponent implements OnInit {
   verifying = signal<boolean>(false);
 
   sources = signal<string[]>([]);
+  showConfig = signal<boolean>(false);
 
-  selectedTemplate = computed<IViewSignTemplate | null>(
-    () => this.templates().find((template) => template.id === this.templateId()) ?? null
-  );
+  config = this.configState.config;
+
+  configSummary = computed<string[]>(() => {
+    const config = this.config();
+    const paths = new Set(this.sources());
+    const ownCount = config.fileOverrides.filter((item) => paths.has(item.path)).length;
+    return [
+      config.reason ? `Lý do: ${config.reason}` : 'Chưa nhập lý do ký',
+      config.location ? `Nơi ký: ${config.location}` : 'Chưa nhập nơi ký',
+      config.showSignature
+        ? `Khối chữ ký: ${config.fontFamily}, ${config.fontSize} pt`
+        : 'Ẩn khối chữ ký số',
+      config.stamps.length > 0
+        ? `${config.stamps.length} khối dấu, chữ ký tươi`
+        : 'Chưa đặt dấu, chữ ký tươi',
+      ...(config.embedSignatureInImage ? ['Nhồi chữ ký số vào ảnh'] : []),
+      ...(ownCount > 0 ? [`${ownCount} file có vị trí riêng`] : [])
+    ];
+  });
 
   certName = computed<string>(
-    () =>
-      this.certs().find((cert) => cert.thumbprint === this.thumbprint())?.commonName ||
-      this.selectedTemplate()?.tenChungThu ||
-      ''
+    () => this.certs().find((cert) => cert.thumbprint === this.thumbprint())?.commonName || ''
   );
 
   isVerified = computed<boolean>(
     () => !!this.thumbprint() && this.certState.verifiedCert()?.thumbprint === this.thumbprint()
   );
 
-  signConfig = computed<ISignConfig | null>(() => {
-    const template = this.selectedTemplate();
-    if (!template) return null;
-
-    const positions = (template.positions ?? [])
-      .filter(
-        (position) =>
-          position.kind === ESignTemplatePositionKind.ChuKy ||
-          (position.kind === ESignTemplatePositionKind.DauDo && !!template.anhDauDoPath) ||
-          (position.kind === ESignTemplatePositionKind.ChuKyTuoi && !!template.anhChuKyTuoiPath)
-      )
-      .map(({ kind, pageNumber, xRatio, yRatio, widthRatio, heightRatio }) => ({
-        kind,
-        pageNumber,
-        xRatio,
-        yRatio,
-        widthRatio,
-        heightRatio
-      }));
-
-    return {
-      useCustomPosition: positions.length > 0,
-      allowOverlapContent: false,
-      positions: positions.length > 0 ? positions : null,
-      fileOverrides: null,
-      fontFamily: template.fontChuKySo ?? null,
-      fontSize: template.coChuKySo ?? null,
-      textColor: template.mauChuKySo ?? null,
-      sealImagePath: template.anhDauDoPath ?? null,
-      wetSignatureImagePath: template.anhChuKyTuoiPath ?? null
-    };
-  });
-
   override ngOnInit(): void {
     this.takeHandoff();
-    this.loadTemplates();
     this.loadCertificates();
   }
 
   override onRouteActivated(): void {
     this.takeHandoff();
-    this.loadTemplates();
-  }
-
-  loadTemplates(): void {
-    this.templateLoading.set(true);
-    this.signTemplateService.findPaging({ pageNumber: this.START_PAGE_NUMBER, pageSize: -1 }).subscribe({
-      next: (res) => {
-        this.templates.set(this.isResponseSucceed(res) ? (res.data.items ?? []) : []);
-        if (!this.selectedTemplate()) {
-          this.templateId.set(null);
-        }
-        this.templateLoading.set(false);
-      },
-      error: () => {
-        this.messageError('Không tải được danh sách template chữ ký. Vui lòng thử lại sau.');
-        this.templates.set([]);
-        this.templateLoading.set(false);
-      }
-    });
   }
 
   loadCertificates(): void {
@@ -135,13 +89,13 @@ export class KySo extends BaseComponent implements OnInit {
     });
   }
 
-  onTemplateChange(id: number | null): void {
-    this.templateId.set(id);
-    this.thumbprint.set(this.selectedTemplate()?.thumbprint || null);
-  }
-
   onCertChange(thumbprint: string | null): void {
     this.thumbprint.set(thumbprint);
+  }
+
+  onConfigSave(config: ISignConfig): void {
+    this.configState.save(config);
+    this.messageSuccess('Đã lưu cấu hình chữ ký.');
   }
 
   verify(): void {
@@ -166,10 +120,6 @@ export class KySo extends BaseComponent implements OnInit {
         this.messageError('Không kiểm tra được chứng thư số. Vui lòng thử lại sau.');
       }
     });
-  }
-
-  goToTemplates(): void {
-    this.router.navigateByUrl(TEMPLATE_LIST_URL);
   }
 
   private takeHandoff(): void {

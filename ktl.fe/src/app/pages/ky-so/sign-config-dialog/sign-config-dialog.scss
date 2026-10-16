@@ -1,0 +1,113 @@
+$accent: var(--layout-accent);
+$line: var(--layout-border);
+
+.config-section {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid $line;
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+
+    .pi {
+      font-size: 0.8125rem;
+      color: $accent;
+    }
+  }
+}
+
+.config-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.config-hint {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: #f5f7fa;
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  color: #64748b;
+}
+
+.signature-sample {
+  display: flex;
+  flex-direction: column;
+  padding: 0.625rem 0.75rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.25rem;
+  padding: 0 0.625rem;
+  border: 1px solid $line;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.option-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid $line;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #b9c4d4;
+  }
+}
+
+.value-badge {
+  min-width: 3rem;
+  padding: 0.0625rem 0.5rem;
+  border-radius: 9999px;
+  background: #eff3fa;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  color: $accent;
+}
+
+.own-count {
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  background: #fef3c7;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.signature-block {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  outline: 1px dashed rgb(79 70 229 / 70%);
+  background: rgb(238 242 255 / 45%);
+  white-space: nowrap;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+
+  &--active {
+    outline: 2px solid $accent;
+  }
+}

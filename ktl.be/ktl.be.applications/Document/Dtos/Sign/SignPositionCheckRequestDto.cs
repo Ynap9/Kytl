@@ -4,10 +4,10 @@ namespace ktl.be.applications.Document.Dtos.Sign
     {
         public List<string> SourcePaths { get; set; } = new();
 
-        public bool UseCustomPosition { get; set; }
+        public bool ShowSignature { get; set; } = true;
 
-        public List<SignPositionDto>? Positions { get; set; }
+        public SignPositionDto? SignaturePosition { get; set; }
 
-        public List<SignFileConfigDto>? FileOverrides { get; set; }
+        public List<SignFileConfigDto> FileOverrides { get; set; } = new();
     }
 }

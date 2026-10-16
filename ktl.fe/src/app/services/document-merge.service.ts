@@ -40,6 +40,10 @@ export class DocumentMergeService {
     return `${this.base}/xem-file?path=${encodeURIComponent(filePath)}`;
   }
 
+  imageUrl(path: string): string {
+    return `${this.base}/xem-anh?path=${encodeURIComponent(path)}`;
+  }
+
   merge(request: IMergeRequest): Observable<IMergeProgress> {
     return streamSse<IMergeProgress>(`${this.base}/sinh-file`, request);
   }

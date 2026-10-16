@@ -62,12 +62,7 @@ namespace ktl.be.infrastructure.external.Documents.Implements
                 string.IsNullOrWhiteSpace(options.Location) ? SigningConstants.DefaultLocation : options.Location,
                 signedAt,
                 await signer.GetSignatureSizeAsync(),
-                options.Placements,
-                options.FontFamily,
-                options.FontSize,
-                options.TextColor,
-                options.SealImage,
-                options.WetSignatureImage,
+                options,
                 _placementResolver,
                 async (bytes, _) => await signer.GetSignatureAsync(new MemoryStream(bytes)),
                 cancellationToken);

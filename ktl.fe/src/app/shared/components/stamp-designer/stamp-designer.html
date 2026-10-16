@@ -4,7 +4,7 @@
       <i class="pi pi-verified"></i>
     </span>
     <div class="flex min-w-0 flex-1 flex-col">
-      <span class="font-semibold text-slate-800">Dấu & chữ ký</span>
+      <span class="font-semibold text-slate-800">{{ title() }}</span>
       <span class="truncate text-xs text-slate-500">{{ subtitle() }}</span>
     </div>
     @if (toggleable()) {
@@ -50,6 +50,7 @@
                     class="stamp-tile__image"
                     [class.cursor-grab]="canPlace()"
                     [class.opacity-50]="!canPlace()"
+                    [style.filter]="imageFilter(kind)"
                     [src]="url"
                     [alt]="kindLabel(kind)"
                     [attr.draggable]="canPlace()"
@@ -115,6 +116,8 @@
         </div>
       </section>
 
+      <ng-content select="[designerImage]" />
+
       <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
         <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
           <span>Khối đã đặt <span class="font-normal text-slate-400">· {{ stamps().length }}</span></span>
@@ -134,7 +137,7 @@
               <div class="layer-row group" [class.layer-row--active]="$index === activeIndex()" (click)="selectStamp($index)">
                 <span class="layer-row__thumb checker">
                   @if (imageUrl(stamp.kind); as url) {
-                    <img [src]="url" [alt]="kindLabel(stamp.kind)" />
+                    <img [src]="url" [alt]="kindLabel(stamp.kind)" [style.filter]="imageFilter(stamp.kind)" />
                   }
                 </span>
                 <span class="flex min-w-0 flex-1 flex-col">
@@ -353,16 +356,18 @@
 
 <section class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-lg border border-[var(--layout-border)] bg-white">
   <div class="flex shrink-0 items-center gap-3 border-b border-[var(--layout-border)] px-3 py-2">
-    <p-selectbutton
-      [options]="modeOptions()"
-      [ngModel]="mode()"
-      optionLabel="label"
-      optionValue="value"
-      optionDisabled="disabled"
-      [allowEmpty]="false"
-      size="small"
-      (onChange)="onModeChange($event.value)"
-    />
+    @if (modeSwitch()) {
+      <p-selectbutton
+        [options]="modeOptions()"
+        [ngModel]="mode()"
+        optionLabel="label"
+        optionValue="value"
+        optionDisabled="disabled"
+        [allowEmpty]="false"
+        size="small"
+        (onChange)="onModeChange($event.value)"
+      />
+    }
 
     <ng-content select="[designerNav]" />
   </div>
@@ -411,7 +416,12 @@
                 (pointerup)="onStampPointerUp($event)"
               >
                 @if (imageUrl(item.stamp.kind); as url) {
-                  <img class="stamp-block__image" [src]="url" [alt]="kindLabel(item.stamp.kind)" />
+                  <img
+                    class="stamp-block__image"
+                    [style.filter]="imageFilter(item.stamp.kind)"
+                    [src]="url"
+                    [alt]="kindLabel(item.stamp.kind)"
+                  />
                 }
                 @if (item.own) {
                   <span class="stamp-block__tag">Riêng</span>
@@ -427,6 +437,9 @@
                   }
                 }
               </div>
+            }
+            @if (pageExtra(); as extra) {
+              <ng-container *ngTemplateOutlet="extra; context: { $implicit: page }" />
             }
           </div>
         }

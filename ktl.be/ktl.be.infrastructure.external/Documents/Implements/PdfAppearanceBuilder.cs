@@ -4,6 +4,7 @@ using ktl.be.infrastructure.external.Documents.Dtos;
 using ktl.be.shared.Constants.Documents;
 using ktl.be.shared.Requests.AppException;
 using ktl.be.shared.Requests.ErrorRequest;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -44,20 +45,145 @@ namespace ktl.be.infrastructure.external.Documents.Implements
         }
 
         public static AppearanceResult BuildImage(byte[] image, int firstObjectNumber, double width, double height,
-            int rotation)
+            int rotation, int darkness, int stroke, string? color)
         {
             using var stream = new MemoryStream(image);
             var xImage = XImage.FromStream(stream);
 
-            return DrawAndTransplant(firstObjectNumber, width, height, rotation, gfx =>
+            var appearance = DrawAndTransplant(firstObjectNumber, width, height, rotation, gfx =>
             {
                 var scale = Math.Min(width / xImage.PointWidth, height / xImage.PointHeight);
                 var drawWidth = xImage.PointWidth * scale;
                 var drawHeight = xImage.PointHeight * scale;
-                gfx.DrawImage(xImage, new XRect((width - drawWidth) / 2, (height - drawHeight) / 2,
-                    drawWidth, drawHeight));
+                var box = new XRect((width - drawWidth) / 2, (height - drawHeight) / 2, drawWidth, drawHeight);
+                foreach (var layer in GetStrokeLayers(box, stroke))
+                {
+                    gfx.DrawImage(xImage, layer);
+                }
             });
+
+            return ApplyDarknessAndColor(appearance, darkness, color);
         }
+
+        private static List<XRect> GetStrokeLayers(XRect box, int stroke)
+        {
+            var radius = box.Width * StampImageConstants.StrokeRadiusRatio * stroke / 100d;
+            if (radius <= 0 || box.Width <= radius * 2 || box.Height <= radius * 2)
+            {
+                return new List<XRect> { box };
+            }
+
+            var core = new XRect(box.X + radius, box.Y + radius, box.Width - radius * 2, box.Height - radius * 2);
+            var layers = Enumerable.Range(0, StampImageConstants.StrokeDirections)
+                .Select(i =>
+                {
+                    var angle = 2 * Math.PI * i / StampImageConstants.StrokeDirections;
+                    return new XRect(core.X + radius * Math.Cos(angle), core.Y + radius * Math.Sin(angle),
+                        core.Width, core.Height);
+                })
+                .ToList();
+            layers.Add(core);
+            return layers;
+        }
+
+        private static AppearanceResult ApplyDarknessAndColor(AppearanceResult appearance, int darkness, string? color)
+        {
+            var factor = darkness / 100d;
+            var ink = ParseColor(color);
+            if (Math.Abs(factor - 1d) < 0.001 && ink == null)
+            {
+                return appearance;
+            }
+
+            var masks = appearance.Objects
+                .SelectMany(o => Regex.Matches(o.DictText, @"/SMask\s+(\d+)\s+\d+\s+R").Select(m => int.Parse(m.Groups[1].Value)))
+                .ToHashSet();
+
+            var brightness = Math.Max(StampImageConstants.DarknessMinBrightness,
+                1 - (factor - 1) * StampImageConstants.DarknessBrightnessFactor);
+            var low = brightness * (1 - factor) / 2;
+            var high = low + brightness * factor;
+
+            var objects = appearance.Objects.Select(o => new TransplantedObject
+            {
+                Number = o.Number,
+                DictText = masks.Contains(o.Number) ? o.DictText : AdjustImageDict(o.DictText, low, high, ink),
+                StreamData = o.StreamData,
+            }).ToList();
+
+            return new AppearanceResult { Objects = objects, FormObjectNumber = appearance.FormObjectNumber };
+        }
+
+        private static string AdjustImageDict(string dict, double low, double high, (double R, double G, double B)? ink)
+        {
+            if (!Regex.IsMatch(dict, @"/Subtype\s*/Image")
+                || Regex.IsMatch(dict, @"/ImageMask\s+true")
+                || Regex.IsMatch(dict, @"/Decode\s*\["))
+            {
+                return dict;
+            }
+
+            var components = Regex.IsMatch(dict, @"/ColorSpace\s*/DeviceRGB") ? 3
+                : Regex.IsMatch(dict, @"/ColorSpace\s*/DeviceGray") ? 1
+                : Regex.IsMatch(dict, @"/ColorSpace\s*/DeviceCMYK") ? 4
+                : 0;
+            if (components == 0)
+            {
+                return dict;
+            }
+
+            var bitsMatch = Regex.Match(dict, @"/BitsPerComponent\s+(\d+)");
+            var bits = bitsMatch.Success ? int.Parse(bitsMatch.Groups[1].Value) : 8;
+
+            if (components == 1 && ink != null && bits <= 8)
+            {
+                return Regex.Replace(dict, @"/ColorSpace\s*/DeviceGray",
+                    "/ColorSpace " + BuildIndexedPalette(low, high, (1 << bits) - 1, ink.Value));
+            }
+
+            var tint = ink != null && components == 3;
+            var channels = new[] { ink?.R ?? 0d, ink?.G ?? 0d, ink?.B ?? 0d };
+            var values = new List<string>();
+            for (var i = 0; i < components; i++)
+            {
+                var c = tint ? channels[i] : 0d;
+                values.Add(FormatUnit(c + (1 - c) * low));
+                values.Add(FormatUnit(c + (1 - c) * high));
+            }
+
+            var close = dict.LastIndexOf(">>", StringComparison.Ordinal);
+            return dict[..close] + "/Decode [" + string.Join(" ", values) + "]" + dict[close..];
+        }
+
+        private static string BuildIndexedPalette(double low, double high, int hival, (double R, double G, double B) ink)
+        {
+            var palette = new StringBuilder();
+            for (var i = 0; i <= hival; i++)
+            {
+                var level = Math.Clamp(low + (double)i / hival * (high - low), 0d, 1d);
+                foreach (var c in new[] { ink.R, ink.G, ink.B })
+                {
+                    var value = Math.Clamp(c + (1 - c) * level, 0d, 1d);
+                    palette.Append(((int)Math.Round(value * 255)).ToString("X2", CultureInfo.InvariantCulture));
+                }
+            }
+
+            return $"[/Indexed /DeviceRGB {hival} <{palette}>]";
+        }
+
+        private static (double R, double G, double B)? ParseColor(string? color)
+        {
+            if (string.IsNullOrWhiteSpace(color) || !Regex.IsMatch(color, StampImageConstants.ColorPattern))
+            {
+                return null;
+            }
+
+            var rgb = int.Parse(color[1..], NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            return (((rgb >> 16) & 0xFF) / 255d, ((rgb >> 8) & 0xFF) / 255d, (rgb & 0xFF) / 255d);
+        }
+
+        private static string FormatUnit(double value) =>
+            Math.Clamp(value, 0d, 1d).ToString("0.####", CultureInfo.InvariantCulture);
 
         private static AppearanceResult DrawAndTransplant(int firstObjectNumber, double width, double height,
             int rotation, Action<XGraphics> draw)

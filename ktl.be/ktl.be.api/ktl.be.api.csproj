@@ -10,10 +10,6 @@
   <ItemGroup>
     <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.20" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.11">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
     <PackageReference Include="NLog" Version="6.0.6" />
     <PackageReference Include="NLog.Extensions.Logging" Version="6.1.0" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.0" />
@@ -21,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ktl.be.infrastructure.data\ktl.be.infrastructure.data.csproj" />
     <ProjectReference Include="..\ktl.be.applications\ktl.be.applications.csproj" />
     <ProjectReference Include="..\ktl.be.infrastructure.external\ktl.be.infrastructure.external.csproj" />
     <ProjectReference Include="..\ktl.be.shared\ktl.be.shared.csproj" />

@@ -15,6 +15,8 @@ namespace ktl.be.applications.Document.Interfaces
 
         Stream OpenPreview(string filePath);
 
+        (Stream Stream, string ContentType) OpenImage(string path);
+
         IAsyncEnumerable<MergeProgressDto> MergeAsync(MergeRequestDto request,
             CancellationToken cancellationToken = default);
     }
