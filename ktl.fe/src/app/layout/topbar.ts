@@ -9,8 +9,8 @@ import { Menu } from './menu';
   template: `
     <div class="layout-topbar">
       <a class="layout-topbar-logo" routerLink="/" draggable="false">
-        <i class="pi pi-file-edit"></i>
-        <span>KTL</span>
+        <img src="logo.png" alt="Sao Mai Digital Solutions" />
+        <span>Ký số Sao Mai</span>
       </a>
 
       <span class="layout-topbar-divider"></span>

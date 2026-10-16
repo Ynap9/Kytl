@@ -5,9 +5,10 @@
 !include "x64.nsh"
 !include "FileFunc.nsh"
 
-!define APP_NAME      "KTL"
+!define APP_ID        "KTL"
+!define APP_NAME      "Ký số Sao Mai"
 !define APP_VERSION   "1.1.0"
-!define APP_PUBLISHER "SaoMaiSolutions"
+!define APP_PUBLISHER "Sao Mai Digital Solutions"
 !define APP_EXE       "KTL.exe"
 
 !define PUBLISH_DIR "..\..\publish"
@@ -19,7 +20,7 @@
 
 !define WEBVIEW2_CLIENT "{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}"
 
-!define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_NAME}"
+!define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${APP_ID}"
 
 !if /FileExists "${PUBLISH_DIR}\${APP_EXE}"
 !else
@@ -27,8 +28,8 @@
 !endif
 
 Name        "${APP_NAME} ${APP_VERSION}"
-OutFile     "installer-output\${APP_NAME}-Setup.exe"
-InstallDir  "$PROGRAMFILES64\${APP_NAME}"
+OutFile     "installer-output\${APP_ID}-Setup.exe"
+InstallDir  "$PROGRAMFILES64\${APP_ID}"
 InstallDirRegKey HKLM "${UNINST_KEY}" "InstallLocation"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
@@ -132,6 +133,12 @@ Section "-${APP_NAME} application"
   File /r "${PUBLISH_DIR}\*.*"
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
+
+  Delete "$DESKTOP\${APP_ID}.lnk"
+  Delete "$SMPROGRAMS\${APP_ID}\${APP_ID}.lnk"
+  Delete "$SMPROGRAMS\${APP_ID}\Uninstall ${APP_ID}.lnk"
+  Delete "$SMPROGRAMS\${APP_ID}\Logs.lnk"
+  RMDir  "$SMPROGRAMS\${APP_ID}"
 
   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
   CreateShortcut  "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"

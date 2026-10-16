@@ -11,7 +11,7 @@ namespace ktl.be.desktop
 {
     internal static class Program
     {
-        private const string AppTitle = "KTL";
+        private const string AppTitle = "Ký số Sao Mai";
 
         private const uint PP_CLIENT_HWND = 1;
 
