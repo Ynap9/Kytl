@@ -5,11 +5,14 @@
 !include "x64.nsh"
 !include "FileFunc.nsh"
 
-!define APP_ID        "KTL"
-!define APP_NAME      "Ký số Sao Mai"
+!define APP_ID        "SaoMai-KySo"
+!define APP_NAME      "Sao Mai - Ký số"
 !define APP_VERSION   "1.2.0"
 !define APP_PUBLISHER "Sao Mai Digital Solutions"
-!define APP_EXE       "KTL.exe"
+!define APP_EXE       "SaoMai-KySo.exe"
+
+!define LEGACY_EXE        "KTL.exe"
+!define LEGACY_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\KTL"
 
 !define PUBLISH_DIR "..\..\publish"
 !define DRIVERS_DIR "drivers"
@@ -29,7 +32,7 @@
 
 Name        "${APP_NAME} ${APP_VERSION}"
 OutFile     "installer-output\${APP_ID}-Setup.exe"
-InstallDir  "$PROGRAMFILES64\${APP_ID}"
+InstallDir  "$PROGRAMFILES64\${APP_NAME}"
 InstallDirRegKey HKLM "${UNINST_KEY}" "InstallLocation"
 RequestExecutionLevel admin
 SetCompressor /SOLID lzma
@@ -48,8 +51,8 @@ Var DepFailed
 Var DriverInstalled
 
 !define MUI_ABORTWARNING
-!define MUI_ICON   "..\ktl.be.desktop\Assets\ktl.ico"
-!define MUI_UNICON "..\ktl.be.desktop\Assets\ktl.ico"
+!define MUI_ICON   "..\ktl.be.desktop\Assets\app.ico"
+!define MUI_UNICON "..\ktl.be.desktop\Assets\app.ico"
 !define MUI_WELCOMEPAGE_TEXT "${APP_NAME} generates documents in bulk, adds red seals and handwritten signatures, and digitally signs PDF files.$\r$\n$\r$\nSetup will also install any missing components: Microsoft Edge WebView2, the bit4id token driver and VGCA TokenManager.$\r$\n$\r$\nClick Next to continue."
 !define MUI_FINISHPAGE_RUN "$INSTDIR\${APP_EXE}"
 !define MUI_FINISHPAGE_RUN_TEXT "Run ${APP_NAME} now"
@@ -125,6 +128,18 @@ FunctionEnd
 
 Section "-${APP_NAME} application"
   SetDetailsPrint both
+
+  SetRegView 64
+  ReadRegStr $1 HKLM "${LEGACY_UNINST_KEY}" "InstallLocation"
+  ${If} $1 != ""
+  ${AndIf} ${FileExists} "$1\Uninstall.exe"
+    DetailPrint "Removing the previous KTL installation..."
+    nsExec::Exec 'taskkill /F /IM "${LEGACY_EXE}"'
+    Pop $0
+    ExecWait '"$1\Uninstall.exe" /S _?=$1'
+    RMDir /r "$1"
+  ${EndIf}
+
   DetailPrint "Closing ${APP_EXE} if it is running..."
   nsExec::Exec 'taskkill /F /IM "${APP_EXE}"'
   Pop $0
@@ -133,12 +148,6 @@ Section "-${APP_NAME} application"
   File /r "${PUBLISH_DIR}\*.*"
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
-
-  Delete "$DESKTOP\${APP_ID}.lnk"
-  Delete "$SMPROGRAMS\${APP_ID}\${APP_ID}.lnk"
-  Delete "$SMPROGRAMS\${APP_ID}\Uninstall ${APP_ID}.lnk"
-  Delete "$SMPROGRAMS\${APP_ID}\Logs.lnk"
-  RMDir  "$SMPROGRAMS\${APP_ID}"
 
   CreateDirectory "$SMPROGRAMS\${APP_NAME}"
   CreateShortcut  "$SMPROGRAMS\${APP_NAME}\${APP_NAME}.lnk" "$INSTDIR\${APP_EXE}"

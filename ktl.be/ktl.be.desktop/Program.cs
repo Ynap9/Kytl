@@ -11,7 +11,7 @@ namespace ktl.be.desktop
 {
     internal static class Program
     {
-        private const string AppTitle = "Ký số Sao Mai";
+        private const string AppTitle = "Sao Mai - Ký số";
 
         private const uint PP_CLIENT_HWND = 1;
 
@@ -36,7 +36,7 @@ namespace ktl.be.desktop
 
             var window = new PhotinoWindow()
                 .SetTitle(AppTitle)
-                .SetIconFile(Path.Combine(AppContext.BaseDirectory, "Assets", "ktl.ico"))
+                .SetIconFile(Path.Combine(AppContext.BaseDirectory, "Assets", "app.ico"))
                 .SetUseOsDefaultSize(false)
                 .SetSize(1280, 820)
                 .Center()

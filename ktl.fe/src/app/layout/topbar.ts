@@ -10,7 +10,7 @@ import { Menu } from './menu';
     <div class="layout-topbar">
       <a class="layout-topbar-logo" routerLink="/" draggable="false">
         <img src="logo.png" alt="Sao Mai Digital Solutions" />
-        <span>Ký số Sao Mai</span>
+        <span>Sao Mai - Ký số</span>
       </a>
 
       <span class="layout-topbar-divider"></span>

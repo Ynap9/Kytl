@@ -167,7 +167,7 @@ namespace ktl.be.infrastructure.external.Documents.Implements
                     .Add("Subtype", new PdfObjectWriter.Name("Widget"))
                     .Add("FT", new PdfObjectWriter.Name("Sig"))
                     .Add("Ff", 0)
-                    .Add("T", new PdfObjectWriter.Str("KTL_Signature_" + sigFieldNo))
+                    .Add("T", new PdfObjectWriter.Str("SaoMai_Signature_" + sigFieldNo))
                     .Add("V", new PdfObjectWriter.Ref(sigValueNo))
                     .Add("P", new PdfObjectWriter.Ref(only.PageNo))
                     .Add("F", 4)
@@ -185,7 +185,7 @@ namespace ktl.be.infrastructure.external.Documents.Implements
                 PdfObjectWriter.WriteValue(fieldSb, new PdfObjectWriter.Dict()
                     .Add("FT", new PdfObjectWriter.Name("Sig"))
                     .Add("Ff", 0)
-                    .Add("T", new PdfObjectWriter.Str("KTL_Signature_" + sigFieldNo))
+                    .Add("T", new PdfObjectWriter.Str("SaoMai_Signature_" + sigFieldNo))
                     .Add("V", new PdfObjectWriter.Ref(sigValueNo))
                     .Add("Kids", widgetNos.Select(n => new PdfObjectWriter.Ref(n)).ToArray()));
                 WriteRaw(sigFieldNo, fieldSb.ToString(), null);

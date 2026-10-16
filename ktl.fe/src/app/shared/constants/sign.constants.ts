@@ -33,7 +33,7 @@ export const SIGN_IMAGE_DARKNESS_MIN_BRIGHTNESS = 0.5;
 export const SIGN_IMAGE_STROKE_MIN = 0;
 export const SIGN_IMAGE_STROKE_MAX = 200;
 
-export const SIGN_CONFIG_STORAGE_KEY = 'ktl_sign_config';
+export const SIGN_CONFIG_STORAGE_KEY = 'saomai_kyso_sign_config';
 
 export const SIGN_DEFAULT_CONFIG: ISignConfig = {
   reason: '',
