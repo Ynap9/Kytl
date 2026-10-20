@@ -11,7 +11,6 @@
             label="file mẫu Word"
             icon="pi pi-file-word"
             iconClass="bg-blue-50 text-blue-600"
-            hint="File .docx, trường cần điền viết trong ngoặc nhọn"
             [invalid]="templateInvalid()"
             [(value)]="templatePath"
           />
@@ -27,7 +26,6 @@
             label="file dữ liệu Excel"
             icon="pi pi-file-excel"
             iconClass="bg-green-50 text-green-600"
-            hint="File .xlsx, dòng 1 là tên cột"
             [invalid]="dataInvalid()"
             [(value)]="dataPath"
           />
@@ -36,54 +34,35 @@
           }
         </div>
 
-        <div class="flex h-10 min-w-0 items-center gap-2 rounded-md bg-[#f5f7fa] px-3 text-sm">
-          @if (reading()) {
-            <i class="pi pi-spin pi-spinner text-slate-500"></i>
-            <span class="text-slate-600">Đang đọc dữ liệu...</span>
-          } @else if (!canRead()) {
-            <i class="pi pi-info-circle text-slate-400"></i>
-            <span class="text-slate-500">Chọn đủ mẫu Word và dữ liệu Excel, hệ thống tự đọc dữ liệu.</span>
-          } @else if (mapping() && !stale()) {
-            <i class="pi pi-check-circle text-green-700"></i>
-            <span class="min-w-0 flex-1 truncate font-semibold text-green-700">
-              {{ mapping()!.fields.length }} trường · {{ mapping()!.headers.length }} cột · {{ mapping()!.totalRows }} dòng dữ liệu
-            </span>
-          } @else {
-            <i class="pi pi-exclamation-triangle text-amber-600"></i>
-            <span class="min-w-0 flex-1 truncate font-medium text-amber-700">Chưa đọc được dữ liệu, kiểm tra lại file rồi đọc lại.</span>
-          }
-          @if (canRead() && !reading()) {
-            <p-button
-              icon="pi pi-refresh"
-              severity="secondary"
-              size="small"
-              [text]="true"
-              pTooltip="Đọc lại dữ liệu"
-              ariaLabel="Đọc lại dữ liệu"
-              styleClass="ml-auto"
-              (onClick)="read.emit()"
-            />
-          }
-        </div>
+        @if (canRead()) {
+          <div class="flex h-10 min-w-0 items-center gap-2 rounded-md bg-[#f5f7fa] px-3 text-sm">
+            @if (reading()) {
+              <i class="pi pi-spin pi-spinner text-slate-500"></i>
+              <span class="text-slate-600">Đang đọc dữ liệu...</span>
+            } @else if (mapping() && !stale()) {
+              <i class="pi pi-check-circle text-green-700"></i>
+              <span class="min-w-0 flex-1 truncate font-semibold text-green-700">
+                {{ mapping()!.fields.length }} trường · {{ mapping()!.headers.length }} cột · {{ mapping()!.totalRows }} dòng dữ liệu
+              </span>
+            } @else {
+              <i class="pi pi-exclamation-triangle text-amber-600"></i>
+              <span class="min-w-0 flex-1 truncate font-medium text-amber-700">Chưa đọc được dữ liệu</span>
+            }
+            @if (!reading()) {
+              <p-button
+                icon="pi pi-refresh"
+                severity="secondary"
+                size="small"
+                [text]="true"
+                pTooltip="Đọc lại dữ liệu"
+                ariaLabel="Đọc lại dữ liệu"
+                styleClass="ml-auto"
+                (onClick)="read.emit()"
+              />
+            }
+          </div>
+        }
       </div>
-    </section>
-
-    <section class="rounded-lg border border-[var(--layout-border)] bg-white p-4">
-      <h2 class="mb-3 text-base font-semibold text-slate-800">Quy tắc</h2>
-      <ul class="flex flex-col gap-2 text-sm text-slate-600">
-        <li class="flex gap-2">
-          <i class="pi pi-angle-right mt-0.5 text-xs text-slate-400"></i>
-          <span>Trường cần điền viết trong ngoặc nhọn, ví dụ <code class="font-mono text-[var(--layout-accent)]">{{ '{' }}ho_chu_dem_va_ten{{ '}' }}</code>.</span>
-        </li>
-        <li class="flex gap-2">
-          <i class="pi pi-angle-right mt-0.5 text-xs text-slate-400"></i>
-          <span>Dòng 1 của sheet đầu tiên là tên cột, mỗi dòng phía dưới tạo ra một file PDF.</span>
-        </li>
-        <li class="flex gap-2">
-          <i class="pi pi-angle-right mt-0.5 text-xs text-slate-400"></i>
-          <span>Ghép tự động bỏ dấu gạch dưới rồi so khớp từng chữ, không phân biệt hoa thường và dấu tiếng Việt.</span>
-        </li>
-      </ul>
     </section>
   </div>
 
@@ -118,8 +97,7 @@
     } @else {
       <div class="flex flex-1 flex-col items-center justify-center gap-2 text-center">
         <i class="pi pi-file-word text-4xl text-slate-300"></i>
-        <span class="text-base font-semibold text-[var(--layout-accent)]">Hãy chọn mẫu và dữ liệu để tiếp tục</span>
-        <span class="max-w-sm text-sm text-slate-500">Chọn đủ hai file để xem các trường trong mẫu và các cột của file Excel.</span>
+        <span class="text-base font-semibold text-slate-500">Chưa có dữ liệu</span>
       </div>
     }
   </section>

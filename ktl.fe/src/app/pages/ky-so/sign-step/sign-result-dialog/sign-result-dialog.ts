@@ -9,7 +9,6 @@ interface ISignResultStatus {
   tone: SignResultTone;
   icon: string;
   title: string;
-  subtitle: string;
 }
 
 @Component({
@@ -31,15 +30,13 @@ export class SignResultDialog extends BaseComponent {
       return {
         tone: 'error',
         icon: 'pi-exclamation-triangle',
-        title: 'Ký số hoàn tất — có lỗi',
-        subtitle: `${failed} file gặp lỗi khi ký, cần kiểm tra và ký lại.`
+        title: 'Ký số hoàn tất — có lỗi'
       };
     }
     return {
       tone: 'success',
       icon: 'pi-check',
-      title: 'Ký số thành công',
-      subtitle: 'Tất cả file đã được ký số và tự nghiệm thu thành công.'
+      title: 'Ký số thành công'
     };
   });
 

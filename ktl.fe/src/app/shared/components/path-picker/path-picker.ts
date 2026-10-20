@@ -17,7 +17,6 @@ export class PathPicker extends BaseComponent {
   value = model<string>('');
   kind = input.required<PathPickerKind>();
   label = input<string>('file');
-  hint = input<string>('');
   icon = input<string>('');
   iconClass = input<string>('bg-slate-100 text-slate-500');
   invalid = input<boolean>(false);

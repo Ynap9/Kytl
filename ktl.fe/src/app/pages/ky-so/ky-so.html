@@ -39,9 +39,7 @@
           />
         </div>
         @if (isVerified()) {
-          <p-tag severity="success" icon="pi pi-check-circle" value="Đã xác thực, sẵn sàng ký" class="self-start" />
-        } @else {
-          <small class="text-slate-500">Chưa xác thực thì bấm Ký số sẽ tự mở hộp nhập PIN của token.</small>
+          <p-tag severity="success" icon="pi pi-check-circle" value="Đã xác thực" class="self-start" />
         }
       </div>
 
@@ -70,7 +68,7 @@
   @if (!thumbprint()) {
     <p-message severity="info" text="Chọn chứng thư số để bắt đầu." />
   } @else if (sources().length === 0) {
-    <p-message severity="info" text="Chọn file hoặc thư mục cần ký để kiểm tra định dạng và ký số." />
+    <p-message severity="info" text="Chọn file hoặc thư mục cần ký." />
   } @else {
     <app-sign-step
       [thumbprint]="thumbprint() ?? ''"

@@ -60,7 +60,6 @@ export class StampDesigner extends BaseComponent {
   emptyText = input<string>('Đang tạo bản xem trước.');
   toggleable = input<boolean>(true);
   title = input<string>('Dấu & chữ ký');
-  subtitle = input<string>('Đóng lên PDF sau khi nhồi dữ liệu');
   modeSwitch = input<boolean>(true);
   imageFilters = input<Partial<Record<EMergeStampKind, string>>>({});
   pageExtra = input<TemplateRef<{ $implicit: IPdfPage }> | null>(null);

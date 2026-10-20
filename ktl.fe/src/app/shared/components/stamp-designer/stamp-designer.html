@@ -3,10 +3,7 @@
     <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-50 text-red-600">
       <i class="pi pi-verified"></i>
     </span>
-    <div class="flex min-w-0 flex-1 flex-col">
-      <span class="font-semibold text-slate-800">{{ title() }}</span>
-      <span class="truncate text-xs text-slate-500">{{ subtitle() }}</span>
-    </div>
+    <span class="min-w-0 flex-1 truncate font-semibold text-slate-800">{{ title() }}</span>
     @if (toggleable()) {
       <p-toggleswitch [ngModel]="enabled()" (ngModelChange)="enabled.set($event)" />
     }
@@ -18,9 +15,6 @@
         <i class="pi pi-images text-2xl"></i>
       </span>
       <span class="font-semibold text-slate-700">Chưa bật dấu &amp; chữ ký</span>
-      <span class="text-[13px] leading-5 text-slate-500">
-        Bạn đang xem văn bản đã nhồi dữ liệu. Bật để đặt dấu đỏ, chữ ký tươi lên trang; không cần thì bấm Tiếp theo.
-      </span>
       <p-button label="Bật dấu &amp; chữ ký" icon="pi pi-plus" size="small" [outlined]="true" (onClick)="enabled.set(true)" />
     </div>
   } @else {
@@ -28,10 +22,7 @@
       <ng-content select="[designerConfig]" />
 
       <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
-        <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
-          <span>Ảnh mẫu</span>
-          <span class="text-xs font-normal text-slate-400">Kéo ảnh thả vào trang</span>
-        </div>
+        <div class="mb-2.5 text-sm font-semibold text-slate-800">Ảnh mẫu</div>
 
         <div class="grid grid-cols-2 gap-3">
           @for (kind of kinds; track kind) {
@@ -76,7 +67,7 @@
                       type="button"
                       class="stamp-tile__action stamp-tile__action--danger"
                       aria-label="Bỏ ảnh"
-                      pTooltip="Bỏ ảnh và các khối của ảnh này"
+                      pTooltip="Bỏ ảnh"
                       tooltipPosition="top"
                       (click)="$event.stopPropagation(); onImagePathChange(kind, '')"
                     >
@@ -86,7 +77,6 @@
                 } @else {
                   <i class="pi pi-plus text-lg text-slate-400"></i>
                   <span class="text-[13px] font-medium text-slate-600">Chọn ảnh</span>
-                  <span class="text-[11px] text-slate-400">hoặc kéo file vào</span>
                 }
                 @if (uploadingKind() === kind) {
                   <span class="absolute inset-0 flex items-center justify-center bg-white/70">
@@ -119,19 +109,14 @@
       <ng-content select="[designerImage]" />
 
       <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
-        <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
+        <div class="flex items-center justify-between text-sm font-semibold text-slate-800" [class.mb-2.5]="stamps().length > 0">
           <span>Khối đã đặt <span class="font-normal text-slate-400">· {{ stamps().length }}</span></span>
           @if (stamps().length > 1 && mode() === EMode.Edit) {
             <button type="button" class="cursor-pointer rounded border-0 bg-transparent px-1 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50" (click)="clearStamps()">Xoá tất cả</button>
           }
         </div>
 
-        @if (stamps().length === 0) {
-          <div class="flex items-center gap-3 rounded-md bg-[#f5f7fa] px-3 py-2.5 text-[12.5px] text-slate-500">
-            <i class="pi pi-arrow-left text-slate-400"></i>
-            Kéo ảnh mẫu thả vào trang để tạo khối.
-          </div>
-        } @else {
+        @if (stamps().length > 0) {
           <div class="flex flex-col gap-1">
             @for (stamp of stamps(); track $index) {
               <div class="layer-row group" [class.layer-row--active]="$index === activeIndex()" (click)="selectStamp($index)">
@@ -161,194 +146,182 @@
         }
       </section>
 
-      @if (activeStamp(); as stamp) {
+      @if (mode() === EMode.Edit && activeStamp(); as stamp) {
         <section class="border-b border-[var(--layout-border)] px-4 py-3.5">
           <div class="mb-2.5 flex items-center justify-between text-sm font-semibold text-slate-800">
             <span>Thuộc tính · Khối {{ activeIndex() + 1 }}</span>
             <span class="text-xs font-normal text-slate-400">{{ kindLabel(stamp.kind) }}</span>
           </div>
 
-          @if (mode() === EMode.Final) {
-            <p class="rounded-md bg-[#f5f7fa] px-3 py-2.5 text-[12.5px] text-slate-500">Chuyển về chế độ Đặt vị trí để chỉnh khối.</p>
-          } @else {
-            <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+              <span class="text-[13px] font-semibold text-slate-700">Áp dụng cho</span>
+              <div class="grid grid-cols-2 gap-1.5">
+                @for (option of scopeOptions; track option.value) {
+                  <button
+                    type="button"
+                    class="seg-option"
+                    [class.seg-option--active]="stamp.scope === option.value"
+                    (click)="onScopeChange(option.value)"
+                  >
+                    {{ option.label }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (stamp.scope === EScope.Repeat) {
               <div class="flex flex-col gap-1.5">
-                <span class="text-[13px] font-semibold text-slate-700">Áp dụng cho</span>
+                <span class="text-[13px] font-semibold text-slate-700">Lặp trên</span>
                 <div class="grid grid-cols-2 gap-1.5">
-                  @for (option of scopeOptions; track option.value) {
+                  @for (option of repeatOptions; track option.value) {
                     <button
                       type="button"
                       class="seg-option"
-                      [class.seg-option--active]="stamp.scope === option.value"
-                      (click)="onScopeChange(option.value)"
+                      [class.seg-option--active]="stamp.repeatMode === option.value"
+                      (click)="onRepeatModeChange(option.value)"
                     >
-                      <span class="seg-option__label">{{ option.label }}</span>
-                      <span class="seg-option__hint">{{ option.hint }}</span>
+                      {{ option.label }}
                     </button>
                   }
                 </div>
-              </div>
-
-              @if (stamp.scope === EScope.Repeat) {
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[13px] font-semibold text-slate-700">Lặp trên</span>
-                  <div class="grid grid-cols-2 gap-1.5">
-                    @for (option of repeatOptions; track option.value) {
-                      <button
-                        type="button"
-                        class="seg-option"
-                        [class.seg-option--active]="stamp.repeatMode === option.value"
-                        (click)="onRepeatModeChange(option.value)"
-                      >
-                        <span class="seg-option__label">{{ option.label }}</span>
-                        <span class="seg-option__hint">{{ option.hint }}</span>
-                      </button>
-                    }
-                  </div>
-                  @if (stamp.repeatMode === ERepeat.Custom) {
-                    <input
-                      pInputText
-                      pSize="small"
-                      class="mt-1 w-full"
-                      placeholder="Ví dụ: 1,3,5-7"
-                      [ngModel]="stamp.customPages ?? ''"
-                      (ngModelChange)="updateActiveStamp({ customPages: $event })"
-                    />
-                    @if (customPagesError(stamp); as error) {
-                      <small class="text-red-600">{{ error }}</small>
-                    }
+                @if (stamp.repeatMode === ERepeat.Custom) {
+                  <input
+                    pInputText
+                    pSize="small"
+                    class="mt-1 w-full"
+                    placeholder="Ví dụ: 1,3,5-7"
+                    [ngModel]="stamp.customPages ?? ''"
+                    (ngModelChange)="updateActiveStamp({ customPages: $event })"
+                  />
+                  @if (customPagesError(stamp); as error) {
+                    <small class="text-red-600">{{ error }}</small>
                   }
-                </div>
-
-                <div class="flex flex-col gap-1.5">
-                  <span class="text-[13px] font-semibold text-slate-700">Khi kéo thả</span>
-                  <div class="grid grid-cols-2 gap-1.5">
-                    @for (option of editScopeOptions; track option.value) {
-                      <button
-                        type="button"
-                        class="seg-option"
-                        [class.seg-option--active]="editScope() === option.value"
-                        (click)="editScope.set(option.value)"
-                      >
-                        <span class="seg-option__label">{{ option.label }}</span>
-                        <span class="seg-option__hint">{{ option.hint }}</span>
-                      </button>
-                    }
-                  </div>
-                  @if (ownPages(stamp); as own) {
-                    @if (own.length > 0) {
-                      <div class="flex flex-col gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800">
-                        <span class="flex items-center gap-2">
-                          <i class="pi pi-map-marker text-xs"></i>
-                          <span class="min-w-0 break-words">Vị trí riêng: trang {{ own.join(', ') }}</span>
-                        </span>
-                        <span class="flex flex-wrap gap-x-3 gap-y-1 pl-5">
-                          @if (activeCopyPage() !== null && own.includes(activeCopyPage()!)) {
-                            <button
-                              type="button"
-                              class="cursor-pointer border-0 bg-transparent p-0 font-medium text-[var(--layout-accent)] hover:underline"
-                              (click)="resetPagePosition(activeCopyPage()!)"
-                            >
-                              Đồng bộ trang {{ activeCopyPage() }}
-                            </button>
-                          }
-                          <button
-                            type="button"
-                            class="cursor-pointer border-0 bg-transparent p-0 font-medium text-[var(--layout-accent)] hover:underline"
-                            (click)="resetPagePositions()"
-                          >
-                            Đồng bộ tất cả
-                          </button>
-                        </span>
-                      </div>
-                    }
-                  }
-                </div>
-              }
-
-              <div class="flex flex-col gap-1.5">
-                @if (showPageChips()) {
-                  <span class="text-[13px] font-semibold text-slate-700">
-                    Trang được đóng <span class="font-normal text-slate-400">· bấm số trang để thêm/bớt</span>
-                  </span>
-                  <div class="flex flex-wrap gap-1.5">
-                    @for (page of pageNumbers(); track page) {
-                      <button
-                        type="button"
-                        class="page-chip"
-                        [class.page-chip--on]="resolvePages(stamp).includes(page)"
-                        [class.page-chip--origin]="page === stamp.pageNumber"
-                        [attr.aria-pressed]="resolvePages(stamp).includes(page)"
-                        [pTooltip]="page === stamp.pageNumber ? 'Trang đặt khối' : ''"
-                        (click)="togglePage(page)"
-                      >
-                        {{ page }}
-                      </button>
-                    }
-                  </div>
-                } @else {
-                  <span class="text-[13px] font-semibold text-slate-700">
-                    Trang được đóng
-                    <span class="font-normal text-slate-400">· {{ resolvePages(stamp).length }}/{{ pageCount() }} trang</span>
-                  </span>
-                  <div class="rounded-md bg-[#f5f7fa] px-3 py-2 font-mono text-[12.5px] break-all text-slate-700">
-                    {{ appliedSummary(stamp) }}
-                  </div>
-                  @if (activeCopyPage(); as page) {
-                    <p-button
-                      [label]="(resolvePages(stamp).includes(page) ? 'Bỏ trang ' : 'Thêm trang ') + page"
-                      [icon]="resolvePages(stamp).includes(page) ? 'pi pi-minus' : 'pi pi-plus'"
-                      severity="secondary"
-                      size="small"
-                      [outlined]="true"
-                      styleClass="w-full justify-center"
-                      (onClick)="togglePage(page)"
-                    />
-                  }
-                  <small class="text-slate-500">Bấm vào khối ở trang cần thêm/bớt, hoặc nhập danh sách trang ở mục Tùy chọn.</small>
                 }
               </div>
 
-              <div class="grid grid-cols-3 gap-1.5">
-                <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
-                  <span class="text-[11px] text-slate-500">Đang chỉnh</span>
-                  <span class="text-[13px] font-semibold text-slate-800">Trang {{ activeCopyPage() }}</span>
+              <div class="flex flex-col gap-1.5">
+                <span class="text-[13px] font-semibold text-slate-700">Khi kéo thả</span>
+                <div class="grid grid-cols-2 gap-1.5">
+                  @for (option of editScopeOptions; track option.value) {
+                    <button
+                      type="button"
+                      class="seg-option"
+                      [class.seg-option--active]="editScope() === option.value"
+                      (click)="editScope.set(option.value)"
+                    >
+                      {{ option.label }}
+                    </button>
+                  }
                 </div>
-                <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
-                  <span class="text-[11px] text-slate-500">X · Y</span>
-                  <span class="text-[13px] font-semibold text-slate-800">{{ (activeArea()!.xRatio * 100).toFixed(0) }}% · {{ (activeArea()!.yRatio * 100).toFixed(0) }}%</span>
-                </div>
-                <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
-                  <span class="text-[11px] text-slate-500">Rộng</span>
-                  <span class="text-[13px] font-semibold text-slate-800">{{ (activeArea()!.widthRatio * 100).toFixed(0) }}%</span>
-                </div>
+                @if (ownPages(stamp); as own) {
+                  @if (own.length > 0) {
+                    <div class="flex flex-col gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-[12.5px] text-amber-800">
+                      <span class="flex items-center gap-2">
+                        <i class="pi pi-map-marker text-xs"></i>
+                        <span class="min-w-0 break-words">Vị trí riêng: trang {{ own.join(', ') }}</span>
+                      </span>
+                      <span class="flex flex-wrap gap-x-3 gap-y-1 pl-5">
+                        @if (activeCopyPage() !== null && own.includes(activeCopyPage()!)) {
+                          <button
+                            type="button"
+                            class="cursor-pointer border-0 bg-transparent p-0 font-medium text-[var(--layout-accent)] hover:underline"
+                            (click)="resetPagePosition(activeCopyPage()!)"
+                          >
+                            Đồng bộ trang {{ activeCopyPage() }}
+                          </button>
+                        }
+                        <button
+                          type="button"
+                          class="cursor-pointer border-0 bg-transparent p-0 font-medium text-[var(--layout-accent)] hover:underline"
+                          (click)="resetPagePositions()"
+                        >
+                          Đồng bộ tất cả
+                        </button>
+                      </span>
+                    </div>
+                  }
+                }
               </div>
+            }
 
-              <div class="grid grid-cols-2 gap-2">
-                <p-button
-                  label="Kích cỡ gốc"
-                  icon="pi pi-refresh"
-                  severity="secondary"
-                  size="small"
-                  [outlined]="true"
-                  styleClass="w-full justify-center"
-                  (onClick)="resetStampSize()"
-                />
-                <p-button
-                  label="Xoá khối"
-                  icon="pi pi-trash"
-                  severity="danger"
-                  size="small"
-                  [outlined]="true"
-                  styleClass="w-full justify-center"
-                  (onClick)="removeStamp(activeIndex())"
-                />
+            <div class="flex flex-col gap-1.5">
+              @if (showPageChips()) {
+                <span class="text-[13px] font-semibold text-slate-700">Trang được đóng</span>
+                <div class="flex flex-wrap gap-1.5">
+                  @for (page of pageNumbers(); track page) {
+                    <button
+                      type="button"
+                      class="page-chip"
+                      [class.page-chip--on]="resolvePages(stamp).includes(page)"
+                      [class.page-chip--origin]="page === stamp.pageNumber"
+                      [attr.aria-pressed]="resolvePages(stamp).includes(page)"
+                      [pTooltip]="page === stamp.pageNumber ? 'Trang đặt khối' : ''"
+                      (click)="togglePage(page)"
+                    >
+                      {{ page }}
+                    </button>
+                  }
+                </div>
+              } @else {
+                <span class="text-[13px] font-semibold text-slate-700">
+                  Trang được đóng
+                  <span class="font-normal text-slate-400">· {{ resolvePages(stamp).length }}/{{ pageCount() }} trang</span>
+                </span>
+                <div class="rounded-md bg-[#f5f7fa] px-3 py-2 font-mono text-[12.5px] break-all text-slate-700">
+                  {{ appliedSummary(stamp) }}
+                </div>
+                @if (activeCopyPage(); as page) {
+                  <p-button
+                    [label]="(resolvePages(stamp).includes(page) ? 'Bỏ trang ' : 'Thêm trang ') + page"
+                    [icon]="resolvePages(stamp).includes(page) ? 'pi pi-minus' : 'pi pi-plus'"
+                    severity="secondary"
+                    size="small"
+                    [outlined]="true"
+                    styleClass="w-full justify-center"
+                    (onClick)="togglePage(page)"
+                  />
+                }
+              }
+            </div>
+
+            <div class="grid grid-cols-3 gap-1.5">
+              <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
+                <span class="text-[11px] text-slate-500">Đang chỉnh</span>
+                <span class="text-[13px] font-semibold text-slate-800">Trang {{ activeCopyPage() }}</span>
+              </div>
+              <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
+                <span class="text-[11px] text-slate-500">X · Y</span>
+                <span class="text-[13px] font-semibold text-slate-800">{{ (activeArea()!.xRatio * 100).toFixed(0) }}% · {{ (activeArea()!.yRatio * 100).toFixed(0) }}%</span>
+              </div>
+              <div class="flex flex-col rounded-md bg-[#f5f7fa] px-2 py-1.5">
+                <span class="text-[11px] text-slate-500">Rộng</span>
+                <span class="text-[13px] font-semibold text-slate-800">{{ (activeArea()!.widthRatio * 100).toFixed(0) }}%</span>
               </div>
             </div>
-          }
+
+            <div class="grid grid-cols-2 gap-2">
+              <p-button
+                label="Kích cỡ gốc"
+                icon="pi pi-refresh"
+                severity="secondary"
+                size="small"
+                [outlined]="true"
+                styleClass="w-full justify-center"
+                (onClick)="resetStampSize()"
+              />
+              <p-button
+                label="Xoá khối"
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                [outlined]="true"
+                styleClass="w-full justify-center"
+                (onClick)="removeStamp(activeIndex())"
+              />
+            </div>
+          </div>
         </section>
-      } @else if (stamps().length > 0) {
-        <section class="border-b border-[var(--layout-border)] px-4 py-3.5 text-[12.5px] text-slate-500">Chọn một khối trên trang hoặc trong danh sách để chỉnh thuộc tính.</section>
       }
     </div>
   }
@@ -408,7 +381,7 @@
                     : item.ghost
                       ? 'Lặp từ khối ' + (item.index + 1)
                       : item.excluded
-                        ? 'Trang này không nằm trong kiểu lặp đã chọn'
+                        ? 'Không áp dụng trang này'
                         : ''
                 "
                 (pointerdown)="onStampPointerDown($event, item, 'move')"

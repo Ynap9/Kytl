@@ -4,7 +4,6 @@
       <div class="mb-2 flex items-center gap-2">
         <i class="pi pi-tag text-lg text-[var(--layout-accent)]"></i>
         <span class="text-base font-semibold text-slate-800">Cột đặt tên file</span>
-        <span class="rounded-full bg-[var(--layout-accent)] px-2 py-px text-[10.5px] font-semibold text-white">NÊN CHỌN</span>
       </div>
       <p-select
         [options]="headers()"
@@ -18,9 +17,6 @@
         class="w-full"
         (onChange)="fileNameColumnNumber.set($event.value ?? null)"
       />
-      <p class="mt-2 text-[12.5px] text-slate-500">
-        Mỗi file PDF đặt tên theo giá trị của cột này. Nên chọn cột không trùng như mã người học, số hiệu.
-      </p>
       <p class="mt-2 truncate text-[12.5px] text-slate-600" [title]="fileNameExample()">
         Ví dụ: <span class="font-semibold text-slate-800">{{ fileNameExample() }}</span>
       </p>
@@ -55,8 +51,6 @@
             <i class="pi pi-exclamation-triangle mt-0.5 text-[11px]"></i><span>{{ warning }}</span>
           </p>
         }
-      } @else {
-        <p class="mt-3 text-[12.5px] text-slate-500">Chưa kiểm tra. Bấm Tiếp theo cũng tự chạy kiểm tra.</p>
       }
     </section>
   </div>
