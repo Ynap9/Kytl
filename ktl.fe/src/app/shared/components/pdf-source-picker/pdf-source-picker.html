@@ -22,9 +22,6 @@
     <p-button label="Chọn file" icon="pi pi-file-pdf" severity="secondary" size="small" [outlined]="true" styleClass="w-full justify-center" [disabled]="disabled()" (onClick)="addFiles()" />
     <p-button label="Chọn thư mục" icon="pi pi-folder-open" severity="secondary" size="small" [outlined]="true" styleClass="w-full justify-center" [disabled]="disabled()" (onClick)="addFolder()" />
   </div>
-  @if (droppable()) {
-    <span class="text-xs text-slate-400">hoặc kéo thả một hay nhiều file PDF vào đây</span>
-  }
   @if (uploading()) {
     <span class="absolute inset-0 flex items-center justify-center rounded-lg bg-white/70">
       <i class="pi pi-spin pi-spinner text-slate-500"></i>
@@ -37,7 +34,7 @@
     pInputText
     pSize="small"
     class="mt-2 w-full"
-    placeholder="Dán đường dẫn file hoặc thư mục (chỉ khi chạy web)"
+    placeholder="Dán đường dẫn file hoặc thư mục"
     [disabled]="disabled()"
     [ngModel]="sourceInput()"
     (ngModelChange)="sourceInput.set($event)"

@@ -27,16 +27,6 @@ $line: var(--layout-border);
   color: #334155;
 }
 
-.config-hint {
-  margin: 0;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  background: #f5f7fa;
-  font-size: 0.75rem;
-  line-height: 1.125rem;
-  color: #64748b;
-}
-
 .signature-sample {
   display: flex;
   flex-direction: column;
@@ -62,7 +52,7 @@ $line: var(--layout-border);
 
 .option-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.75rem;
   padding: 0.625rem 0.75rem;
   border: 1px solid $line;

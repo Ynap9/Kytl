@@ -8,7 +8,6 @@
         icon="pi pi-folder"
         iconClass="bg-amber-50 text-amber-600"
         label="thư mục lưu"
-        hint="Để trống = lưu cùng thư mục file Excel (bắt buộc chọn nếu Excel được kéo thả)"
         [disabled]="running()"
         [(value)]="outputFolder"
       />
@@ -18,16 +17,12 @@
         <span class="truncate rounded bg-[#f5f7fa] px-2 py-1 text-slate-700">{{ templateName() }}_</span>
         <span class="rounded bg-[#edf2fb] px-2 py-1 font-medium text-[var(--layout-accent)]">{{ fileNameHeader() ?? 'số dòng Excel' }}</span>
         <span class="rounded bg-[#f5f7fa] px-2 py-1 text-slate-700">.pdf</span>
-        <span class="ml-1 text-slate-500">· trùng tên tự thêm số dòng</span>
       </div>
-
-      <label class="text-slate-700">Lưu tại:</label>
-      <span class="text-[13px] text-slate-500">Thư mục con mới <span class="font-medium text-slate-700">{{ templateName() }}_&lt;thời điểm tạo&gt;</span> cho mỗi lần tạo.</span>
 
       <label class="text-slate-700" for="merge-sign-after">Ký số:</label>
       <label class="flex cursor-pointer items-center gap-2 text-[13px] text-slate-700">
         <p-checkbox [binary]="true" [ngModel]="signAfter()" (ngModelChange)="signAfter.set($event)" [disabled]="running()" inputId="merge-sign-after" />
-        Ký số sau khi tạo <span class="text-slate-500">· tạo xong tự chuyển sang Ký số với các file vừa tạo</span>
+        Ký số sau khi tạo
       </label>
     </div>
   </section>
@@ -88,8 +83,7 @@
   } @else if (!validation()) {
     <div class="flex flex-1 flex-col items-center justify-center gap-2 text-center">
       <i class="pi pi-exclamation-circle text-3xl text-red-400"></i>
-      <span class="font-semibold text-slate-700">Cấu hình chưa hợp lệ nên chưa tạo file được</span>
-      <span class="text-sm text-slate-500">Xem thông báo lỗi, quay lại bước trước để chỉnh rồi bấm Kiểm tra lại.</span>
+      <span class="font-semibold text-slate-700">Cấu hình chưa hợp lệ</span>
     </div>
   } @else {
     <div class="run-grid shrink-0 border-b border-[var(--layout-border)] bg-[#f5f7fa] py-2 text-[13px] font-semibold text-slate-500">

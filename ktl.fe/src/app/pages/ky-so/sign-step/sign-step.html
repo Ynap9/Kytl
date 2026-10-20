@@ -2,7 +2,6 @@
   <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
     <div class="flex min-w-0 items-center gap-2 text-sm">
       <i class="pi pi-folder-open text-slate-500"></i>
-      <span class="text-slate-500">Nguồn ký số:</span>
       <span class="font-semibold text-slate-800">{{ sources().length }} nguồn · {{ fileRows().length }} file PDF</span>
     </div>
     <p-button
@@ -19,18 +18,18 @@
   @if (positionChecking()) {
     <div class="flex items-center gap-2 rounded-lg border border-slate-200 p-3 text-sm text-slate-600">
       <i class="pi pi-spin pi-spinner"></i>
-      Đang kiểm cấu hình chữ ký trên từng file...
+      Đang kiểm tra vị trí chữ ký...
     </div>
   } @else if (positionCheck(); as check) {
     <div class="rounded-lg border border-slate-200 p-3">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-        <span class="font-medium text-slate-700">Cấu hình chữ ký</span>
+        <span class="font-medium text-slate-700">Vị trí chữ ký</span>
         <span class="inline-flex items-center gap-1 text-green-600">
-          <i class="pi pi-check-circle"></i> {{ check.fittedCount }}/{{ check.totalFiles }} file vừa vặn
+          <i class="pi pi-check-circle"></i> {{ check.fittedCount }}/{{ check.totalFiles }} file hợp lệ
         </span>
         @if (check.adjustedCount > 0) {
           <span class="inline-flex items-center gap-1 text-amber-600">
-            <i class="pi pi-exclamation-triangle"></i> {{ check.adjustedCount }} file sẽ được chỉnh cho vừa trang
+            <i class="pi pi-exclamation-triangle"></i> {{ check.adjustedCount }} file tự chỉnh vừa trang
           </span>
         }
         @if (check.unreadableCount > 0) {

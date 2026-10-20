@@ -17,12 +17,7 @@
       <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md" [ngClass]="iconClass()">
         <i [class]="icon() || 'pi pi-cloud-upload'"></i>
       </span>
-      <span class="flex min-w-0 flex-1 flex-col">
-        <span class="truncate font-medium text-slate-700">Kéo thả {{ label() }} vào đây</span>
-        @if (hint()) {
-          <span class="truncate text-xs text-slate-400">{{ hint() }}</span>
-        }
-      </span>
+      <span class="min-w-0 flex-1 truncate font-medium text-slate-700">Kéo thả {{ label() }} vào đây</span>
       <p-button
         [label]="pickLabel()"
         icon="pi pi-folder-open"
@@ -76,9 +71,6 @@
             <span class="font-medium text-slate-600" [ngClass]="{ 'text-[13px]': compact() }">
               {{ droppable() ? 'Bấm chọn hoặc kéo thả ' + label() : 'Bấm để chọn ' + label() }}
             </span>
-            @if (hint()) {
-              <span class="truncate text-xs text-slate-400">{{ hint() }}</span>
-            }
           }
         </span>
         @if (uploading()) {
@@ -110,7 +102,7 @@
       pInputText
       pSize="small"
       class="w-full"
-      [placeholder]="'Dán đường dẫn ' + label() + ' (chỉ dùng khi chạy trên web để thử)'"
+      [placeholder]="'Dán đường dẫn ' + label()"
       [disabled]="disabled()"
       [ngModel]="value()"
       [ngModelOptions]="{ updateOn: 'blur' }"

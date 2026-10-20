@@ -18,9 +18,6 @@
       <h2 class="mt-2 text-xl font-bold text-slate-800">
         {{ hasError() ? 'Tạo file hoàn tất — có lỗi' : 'Tạo file thành công' }}
       </h2>
-      <p class="text-sm text-slate-500">
-        {{ hasError() ? r.failedCount + ' file lỗi, xem ghi chú trong bảng để xử lý.' : 'Tất cả file PDF đã được nhồi dữ liệu đúng từng dòng.' }}
-      </p>
     </div>
 
     <div class="mt-5 grid grid-cols-2 gap-3 px-2">
@@ -32,7 +29,6 @@
       <div class="flex flex-col items-center rounded-xl border border-red-200 bg-red-50 py-3" [class.opacity-50]="!hasError()">
         <span class="text-2xl font-bold text-red-600">{{ r.failedCount }}</span>
         <span class="text-sm font-medium text-slate-700">Lỗi</span>
-        <span class="text-xs text-slate-400">Không tạo được</span>
       </div>
     </div>
 

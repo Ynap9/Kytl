@@ -5,11 +5,11 @@ export enum EMergeStep {
   Run = 3
 }
 
-export const MERGE_STEPS: { step: EMergeStep; label: string; description: string }[] = [
-  { step: EMergeStep.Source, label: 'Nguồn', description: 'Chọn mẫu Word và file dữ liệu Excel, hệ thống tự đọc dữ liệu' },
-  { step: EMergeStep.Mapping, label: 'Ghép trường', description: 'Ghép từng trường trong mẫu với một cột Excel rồi kiểm tra dữ liệu' },
-  { step: EMergeStep.Stamp, label: 'Xem trước', description: 'Xem văn bản đã nhồi dữ liệu, đóng dấu đỏ và chữ ký tươi nếu cần' },
-  { step: EMergeStep.Run, label: 'Tạo file', description: 'Chọn nơi lưu và tạo file PDF cho từng dòng dữ liệu' }
+export const MERGE_STEPS: { step: EMergeStep; label: string }[] = [
+  { step: EMergeStep.Source, label: 'Nguồn' },
+  { step: EMergeStep.Mapping, label: 'Ghép trường' },
+  { step: EMergeStep.Stamp, label: 'Xem trước' },
+  { step: EMergeStep.Run, label: 'Tạo file' }
 ];
 
 export const MERGE_PAGE_TITLE = 'Tạo văn bản';
@@ -29,9 +29,9 @@ export enum EMergeStampScope {
   Repeat = 1
 }
 
-export const MERGE_STAMP_SCOPE_OPTIONS: { label: string; hint: string; value: EMergeStampScope }[] = [
-  { label: 'Trang hiện tại', hint: 'Chỉ trang đặt khối', value: EMergeStampScope.CurrentPage },
-  { label: 'Toàn bộ', hint: 'Lặp sang trang khác', value: EMergeStampScope.Repeat }
+export const MERGE_STAMP_SCOPE_OPTIONS: { label: string; value: EMergeStampScope }[] = [
+  { label: 'Trang hiện tại', value: EMergeStampScope.CurrentPage },
+  { label: 'Toàn bộ', value: EMergeStampScope.Repeat }
 ];
 
 export enum EMergeStampRepeatMode {
@@ -41,11 +41,11 @@ export enum EMergeStampRepeatMode {
   Custom = 3
 }
 
-export const MERGE_STAMP_REPEAT_OPTIONS: { label: string; hint: string; value: EMergeStampRepeatMode }[] = [
-  { label: 'Tất cả', hint: 'Mọi trang', value: EMergeStampRepeatMode.All },
-  { label: 'Trang chẵn', hint: '2, 4, 6…', value: EMergeStampRepeatMode.Even },
-  { label: 'Trang lẻ', hint: '1, 3, 5…', value: EMergeStampRepeatMode.Odd },
-  { label: 'Tùy chọn', hint: 'Ví dụ 1,3-5', value: EMergeStampRepeatMode.Custom }
+export const MERGE_STAMP_REPEAT_OPTIONS: { label: string; value: EMergeStampRepeatMode }[] = [
+  { label: 'Tất cả', value: EMergeStampRepeatMode.All },
+  { label: 'Trang chẵn', value: EMergeStampRepeatMode.Even },
+  { label: 'Trang lẻ', value: EMergeStampRepeatMode.Odd },
+  { label: 'Tùy chọn', value: EMergeStampRepeatMode.Custom }
 ];
 
 export enum EMergeStampEditScope {
@@ -53,9 +53,9 @@ export enum EMergeStampEditScope {
   CurrentPage = 'page'
 }
 
-export const MERGE_STAMP_EDIT_SCOPE_OPTIONS: { label: string; hint: string; value: EMergeStampEditScope }[] = [
-  { label: 'Mọi trang đã chọn', hint: 'Các trang cùng đổi', value: EMergeStampEditScope.AllPages },
-  { label: 'Chỉ trang đang kéo', hint: 'Trang khác giữ nguyên', value: EMergeStampEditScope.CurrentPage }
+export const MERGE_STAMP_EDIT_SCOPE_OPTIONS: { label: string; value: EMergeStampEditScope }[] = [
+  { label: 'Mọi trang đã chọn', value: EMergeStampEditScope.AllPages },
+  { label: 'Chỉ trang đang kéo', value: EMergeStampEditScope.CurrentPage }
 ];
 
 export const MERGE_PAGE_CHIP_LIMIT = 24;

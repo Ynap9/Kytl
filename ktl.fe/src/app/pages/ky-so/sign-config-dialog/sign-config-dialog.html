@@ -15,18 +15,14 @@
       <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
         <i class="pi pi-sliders-h"></i>
       </span>
-      <div class="flex flex-col">
-        <span class="text-base font-semibold text-slate-800">Cấu hình chữ ký</span>
-        <span class="text-xs text-slate-500">Thiết lập hiển thị chữ ký số, dấu đỏ, chữ ký tươi rồi kéo thả lên trang</span>
-      </div>
+      <span class="text-base font-semibold text-slate-800">Cấu hình chữ ký</span>
     </div>
   </ng-template>
 
   <div class="flex h-[76vh] min-h-0 bg-[#f5f7fa] p-4">
     <app-stamp-designer
       title="Thiết lập chữ ký"
-      subtitle="Áp dụng cho mọi file đã chọn"
-      emptyText="Chọn file hoặc thư mục cần ký để xem trước."
+      emptyText="Chưa có file để xem trước."
       [toggleable]="false"
       [enabled]="true"
       [modeSwitch]="false"
@@ -83,7 +79,7 @@
             <p-toggleswitch
               [ngModel]="draft().showSignature"
               (ngModelChange)="patch({ showSignature: $event })"
-              pTooltip="Hiện tên người ký và thời gian ký trên trang"
+              pTooltip="Hiện trên trang"
               tooltipPosition="left"
             />
           </div>
@@ -172,16 +168,13 @@
                     size="small"
                     [text]="true"
                     class="ml-auto"
-                    pTooltip="Về góc trên bên phải trang 1"
+                    pTooltip="Góc trên bên phải trang 1"
                     tooltipPosition="top"
                     (onClick)="resetSignaturePosition()"
                   />
                 </div>
-                <small class="text-xs text-slate-500">Kéo khối trên trang để đổi vị trí.</small>
               </div>
             </div>
-          } @else {
-            <p class="config-hint">Chữ ký số vẫn được ký đầy đủ, chỉ không hiện khối tên người ký và thời gian trên trang.</p>
           }
 
           <label class="option-card mt-3">
@@ -189,12 +182,7 @@
               [ngModel]="draft().embedSignatureInImage"
               (ngModelChange)="patch({ embedSignatureInImage: $event })"
             />
-            <span class="flex min-w-0 flex-col">
-              <span class="text-[13px] font-semibold text-slate-800">Nhồi chữ ký số vào ảnh</span>
-              <span class="text-xs leading-4 text-slate-500">
-                Ảnh dấu đỏ, chữ ký tươi trở thành vùng chữ ký số, bấm vào ảnh trong file sẽ xem được thông tin chữ ký
-              </span>
-            </span>
+            <span class="text-[13px] font-semibold text-slate-800">Nhồi chữ ký số vào ảnh</span>
           </label>
         </section>
       </div>
@@ -282,8 +270,6 @@
                   </div>
                 </div>
               }
-
-              <p class="config-hint">Độ dày nét và màu mực áp dụng khi ký, khung xem trước chỉ mô phỏng độ đậm.</p>
             </div>
           </section>
         }
@@ -326,14 +312,12 @@
 
         <div class="ml-auto flex items-center gap-2">
           @if (ownLayoutCount() > 0) {
-            <span class="own-count" pTooltip="Số file đang dùng vị trí riêng" tooltipPosition="bottom">
-              {{ ownLayoutCount() }} file riêng
-            </span>
+            <span class="own-count">{{ ownLayoutCount() }} file riêng</span>
           }
           <label
             class="flex items-center gap-2 text-[13px] font-medium text-slate-700"
             [class.opacity-50]="!currentFile()"
-            pTooltip="Bật để kéo vị trí chỉ cho file đang xem, các file khác giữ vị trí chung"
+            pTooltip="Chỉ áp dụng cho file đang xem"
             tooltipPosition="bottom"
           >
             <p-toggleswitch
@@ -349,15 +333,9 @@
   </div>
 
   <ng-template #footer>
-    <div class="flex w-full items-center gap-3">
-      <span class="flex items-center gap-1.5 text-xs text-slate-500">
-        <i class="pi pi-info-circle"></i>
-        Cấu hình được nhớ trên máy này cho các lần ký sau
-      </span>
-      <div class="ml-auto flex gap-2">
-        <p-button label="Huỷ" severity="secondary" [outlined]="true" (onClick)="onCancel()" />
-        <p-button label="Lưu cấu hình" icon="pi pi-check" (onClick)="onSave()" />
-      </div>
+    <div class="flex w-full justify-end gap-2">
+      <p-button label="Huỷ" severity="secondary" [outlined]="true" (onClick)="onCancel()" />
+      <p-button label="Lưu cấu hình" icon="pi pi-check" (onClick)="onSave()" />
     </div>
   </ng-template>
 </p-dialog>
@@ -375,7 +353,7 @@
       [style.font-size.px]="signatureFontPx(page)"
       [style.line-height]="lineHeightRatio"
       [style.color]="draft().textColor"
-      pTooltip="Khối chữ ký số, kéo để đổi vị trí"
+      pTooltip="Kéo để di chuyển"
       tooltipPosition="top"
       (pointerdown)="onSignaturePointerDown($event, page)"
       (pointermove)="onSignaturePointerMove($event)"

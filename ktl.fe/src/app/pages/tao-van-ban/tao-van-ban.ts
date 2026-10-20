@@ -57,7 +57,6 @@ export class TaoVanBan extends BaseComponent {
   wetSignatureImagePath = signal<string>('');
   stamps = signal<IMergeStamp[]>([]);
 
-  currentStep = computed(() => this.steps[this.step()]);
   busy = computed(() => this.reading() || this.validating() || this.running());
 
   templateName = computed(() =>

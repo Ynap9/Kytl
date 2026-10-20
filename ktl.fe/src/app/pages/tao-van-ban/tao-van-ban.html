@@ -87,10 +87,7 @@
   </div>
 
   <footer class="wizard__nav">
-    <span class="min-w-0 truncate text-sm text-slate-500">
-      <span class="font-semibold text-slate-700">Bước {{ step() + 1 }}/{{ steps.length }}</span>
-      — {{ currentStep().description }}
-    </span>
+    <span class="text-sm font-semibold text-slate-700">Bước {{ step() + 1 }}/{{ steps.length }}</span>
 
     <div class="flex shrink-0 items-center gap-2">
       @if (step() !== EStep.Source) {

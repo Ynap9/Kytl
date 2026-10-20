@@ -21,7 +21,6 @@
           <i class="pi" [ngClass]="s.icon"></i>
         </div>
         <h2 class="srd-title">{{ s.title }}</h2>
-        <p class="srd-subtitle">{{ s.subtitle }}</p>
       </div>
 
       <div class="srd-body">
@@ -34,14 +33,13 @@
           <div class="srd-stat srd-stat--red" [class.srd-stat--muted]="r.failedCount === 0">
             <span class="srd-stat__value">{{ r.failedCount }}</span>
             <span class="srd-stat__label">Lỗi</span>
-            <span class="srd-stat__hint">Không ký được</span>
           </div>
         </div>
 
         <div class="srd-path">
           <span class="srd-path__icon"><i class="pi pi-folder"></i></span>
           <div class="srd-path__text">
-            <span class="srd-path__label">Thư mục chứa file đã ký</span>
+            <span class="srd-path__label">Thư mục lưu</span>
             <span class="srd-path__value" [title]="r.outputFolder">{{ r.outputFolder || 'Cạnh từng file gốc' }}</span>
           </div>
         </div>

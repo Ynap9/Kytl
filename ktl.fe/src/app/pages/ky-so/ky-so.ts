@@ -44,16 +44,12 @@ export class KySo extends BaseComponent implements OnInit {
     const paths = new Set(this.sources());
     const ownCount = config.fileOverrides.filter((item) => paths.has(item.path)).length;
     return [
-      config.reason ? `Lý do: ${config.reason}` : 'Chưa nhập lý do ký',
-      config.location ? `Nơi ký: ${config.location}` : 'Chưa nhập nơi ký',
-      config.showSignature
-        ? `Khối chữ ký: ${config.fontFamily}, ${config.fontSize} pt`
-        : 'Ẩn khối chữ ký số',
-      config.stamps.length > 0
-        ? `${config.stamps.length} khối dấu, chữ ký tươi`
-        : 'Chưa đặt dấu, chữ ký tươi',
-      ...(config.embedSignatureInImage ? ['Nhồi chữ ký số vào ảnh'] : []),
-      ...(ownCount > 0 ? [`${ownCount} file có vị trí riêng`] : [])
+      ...(config.reason ? [`Lý do: ${config.reason}`] : []),
+      ...(config.location ? [`Nơi ký: ${config.location}`] : []),
+      config.showSignature ? `${config.fontFamily}, ${config.fontSize} pt` : 'Ẩn chữ ký số',
+      ...(config.stamps.length > 0 ? [`${config.stamps.length} dấu, chữ ký tươi`] : []),
+      ...(config.embedSignatureInImage ? ['Nhồi vào ảnh'] : []),
+      ...(ownCount > 0 ? [`${ownCount} file riêng`] : [])
     ];
   });
 
